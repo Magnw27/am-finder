@@ -15,7 +15,7 @@ from . import finder, tiktok
 from .extractor import TIER_ALIGHT, TIER_DRIVE
 
 _TIER_LABEL = {
-    TIER_DRIVE: "Drive",
+    TIER_DRIVE: "XML",
     TIER_ALIGHT: "Alight Motion",
 }
 
@@ -36,29 +36,21 @@ def _format(result: finder.FindResult) -> str:
     )
     lines.append("=" * 66)
 
-    priority = result.priority_links
-    _pid = {id(c) for c in priority}
-    others = [c for c in result.links if id(c) not in _pid]
+    priority = result.visible_links
 
     if priority:
-        lines.append(f"\n{len(priority)} tautan prioritas (Drive / Alight Motion):\n")
+        lines.append(f"\n{len(priority)} tautan ditemukan (XML / Alight Motion):\n")
         for i, c in enumerate(priority, 1):
-            lines.append(f"{i:2d}. [{_TIER_LABEL.get(c.tier, c.tier)}] skor={c.score:>3} sumber={c.source}")
+            name = _TIER_LABEL.get(c.tier, c.tier)
+            lines.append(f"{i:2d}. [{name}] skor={c.score:>3} sumber={c.source}")
             lines.append(f"    {c.url}")
             if c.context:
                 lines.append(f"    konteks: {c.context[:160]}")
             lines.append("")
-
-    if others:
-        lines.append(f"{len(others)} tautan lain (prioritas rendah):\n")
-        for i, c in enumerate(others, 1):
-            tag = " [PETUNJUK]" if c.indirect else ""
-            lines.append(f"{i:2d}. skor={c.score:>3} sumber={c.source}{tag}")
-            lines.append(f"    {c.url or '(lihat konteks)'}")
-            lines.append("")
-
-    if not result.links:
-        lines.append("\nTidak ada tautan yang ditemukan.")
+    else:
+        lines.append(
+            "\nTidak ditemukan tautan XML (Google Drive) atau Alight Motion."
+        )
 
     for w in result.warnings:
         lines.append(f"! Peringatan: {w}")

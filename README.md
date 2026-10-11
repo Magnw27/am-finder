@@ -20,13 +20,17 @@ utama; domain lain tetap ditampilkan sebagai prioritas rendah.
 
 ## Fitur
 
-- 🎯 **Prioritas** `drive.google.com` / `docs.google.com` dan `alightcreative.com`.
+- 🎯 **Hanya menampilkan dua jenis tautan**: **XML** (`drive.google.com` /
+  `docs.google.com`) dan **Alight Motion** (`alightcreative.com`). Domain lain
+  (MediaFire, Mega, link pendek, dll.) sengaja **tidak ditampilkan**.
+- 🎬 **Pratinjau video TikTok** di halaman hasil, untuk memverifikasi URL benar.
 - 🔎 Ekstraksi tautan cerdas: mengenali domain telanjang (`drive.google.com/...`),
   merapikan URL `open?id=` ke bentuk kanonik, dan mendeteksi link "disamarkan".
 - 🧠 **Skor kepercayaan** tiap tautan + alasan penilaiannya.
 - 📌 Deteksi **komentar disematkan** dan komentar milik kreator.
 - ⚠️ Deteksi tautan "tidak langsung" (mis. "link di bio").
-- 🖥️ **Web app** bergaya editorial + **CLI** — tanpa dependensi.
+- 💎 **UI glassmorphism** biru-putih, dioptimalkan untuk mobile & desktop.
+- 🖥️ **Web app** + **CLI** — tanpa dependensi.
 - 🧩 Arsitektur **pluggable** — mudah menambah penyedia data TikTok lain.
 
 ## Menjalankan
@@ -104,19 +108,17 @@ URL TikTok
 [server.py / cli.py]  tampilkan ke pengguna
 ```
 
-## Skor & prioritas
+## Penyaringan & skor
 
-Hasil diurutkan **berdasarkan tier** dulu, baru skor:
+Hasil **hanya** memuat tautan dari dua tier berikut; sisanya dibuang:
 
-| Tier | Domain | Skor dasar |
+| Ditampilkan sebagai | Domain | Skor |
 |---|---|---|
-| **Prioritas 1** | `drive.google.com`, `docs.google.com` | 70–90 |
-| **Prioritas 2** | `alightcreative.com` | 75–95 |
-| Lain | MediaFire, Mega, Dropbox, GitHub, link pendek, dll. | 0–45 |
-| Petunjuk | tanpa URL ("link di bio") | 5 |
+| **XML** | `drive.google.com`, `docs.google.com` | 70–90 |
+| **Alight Motion** | `alightcreative.com` | 75–95 |
 
-Contoh: URL Drive ke berkas spesifik dengan konteks "preset" ⇒ **90**;
-tautan berbagi Alight Motion ⇒ **95**; tautan MediaFire ⇒ **45**.
+Tautan lain (MediaFire, Mega, Dropbox, GitHub, link pendek, dll.) tidak
+ditampilkan. Petunjuk tanpa URL seperti "link di bio" diabaikan pada output.
 
 ## Menambah penyedia TikTok
 

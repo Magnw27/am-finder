@@ -2,348 +2,415 @@
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>am-finder — pencari tautan preset Alight Motion dari TikTok</title>
-<meta name="description" content="Tempel tautan video TikTok, temukan tautan preset Alight Motion dari deskripsi, komentar, dan bio kreator. Prioritas drive.google.com & alightcreative.com." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141311'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23E23D28' text-anchor='middle'%3EAF%3C/text%3E%3C/svg%3E" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>am-finder — pencari preset Alight Motion dari TikTok</title>
+<meta name="description" content="Tempel tautan video TikTok, temukan preset XML (Google Drive) & Alight Motion dari deskripsi, komentar, dan bio kreator." />
+<meta name="theme-color" content="#eaf3ff" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%2338bdf8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='15' font-weight='700' fill='white' text-anchor='middle'%3EAF%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --paper:#F1EDE3;
-    --paper-2:#E9E4D7;
-    --ink:#15140F;
-    --ink-soft:#3A382F;
-    --muted:#726D60;
-    --line:#C8C1AE;
-    --line-strong:#15140F;
-    --accent:#DE3C22;
-    --accent-dark:#A82A16;
-    --drive:#1C6B3B;
-    --alight:#B23A00;
-    --warn:#8A6A00;
-    --radius:2px;
+    --blue-900:#0b2a5b;
+    --blue-800:#123a78;
+    --blue-700:#1d4ed8;
+    --blue-600:#2563eb;
+    --sky-500:#0ea5e9;
+    --sky-400:#38bdf8;
+    --ink:#0e2a55;
+    --ink-soft:#3c5a8c;
+    --ink-mute:#6b86b3;
+    --glass:rgba(255,255,255,.55);
+    --glass-strong:rgba(255,255,255,.72);
+    --glass-line:rgba(255,255,255,.85);
+    --stroke:rgba(37,99,235,.18);
+    --shadow:0 18px 50px -18px rgba(23,58,120,.45);
+    --grad:linear-gradient(135deg,#2563eb 0%,#38bdf8 100%);
+    --grad-2:linear-gradient(135deg,#1d4ed8 0%,#0ea5e9 100%);
   }
 
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth; -webkit-text-size-adjust:100%;}
   body{
     margin:0;
-    background:var(--paper);
+    min-height:100dvh;
     color:var(--ink);
-    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    font-size:16px;
-    line-height:1.5;
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.55;
+    background:
+      radial-gradient(1200px 700px at 12% -10%, #ffffff 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(165deg,#f2f8ff 0%,#e2eefc 35%,#d3e6fb 65%,#eaf3ff 100%);
+    background-attachment:fixed;
     -webkit-font-smoothing:antialiased;
-    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
   }
-  /* tekstur kertas halus */
-  body::before{
-    content:"";
-    position:fixed; inset:0; z-index:0; pointer-events:none;
-    opacity:.5; mix-blend-mode:multiply;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
-  }
-  .shell{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 28px;}
+  /* orbs latar */
+  .orbs{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; filter:blur(2px);}
+  .orb{position:absolute; border-radius:50%; filter:blur(70px); opacity:.55; animation:float 18s ease-in-out infinite;}
+  .orb.a{width:520px;height:520px; left:-140px; top:-120px; background:radial-gradient(circle,#7cc3ff,#2563eb); }
+  .orb.b{width:460px;height:460px; right:-120px; top:8%; background:radial-gradient(circle,#a5d8ff,#38bdf8); animation-delay:-5s;}
+  .orb.c{width:620px;height:620px; left:35%; bottom:-260px; background:radial-gradient(circle,#8fb8ff,#1d4ed8); animation-delay:-9s; opacity:.4;}
+  .orb.d{width:340px;height:340px; right:12%; bottom:-80px; background:radial-gradient(circle,#c7e6ff,#0ea5e9); animation-delay:-2s;}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-40px) scale(1.06);}66%{transform:translate(-24px,26px) scale(.96);}}
+
+  .shell{position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:0 clamp(16px,4vw,34px);}
 
   a{color:inherit;}
 
-  /* ---------- top bar ---------- */
+  /* glass primitive */
+  .glass{
+    background:var(--glass);
+    backdrop-filter:blur(22px) saturate(170%);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid var(--glass-line);
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.9);
+    border-radius:22px;
+  }
+
+  /* ---- top bar ---- */
   .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:20px 0; border-bottom:1px solid var(--line-strong);
-    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.04em; text-transform:uppercase;
+    position:sticky; top:12px; z-index:20;
+    margin-top:14px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:11px 16px;
   }
-  .brand{display:flex; align-items:center; gap:10px; font-weight:600;}
+  .brand{display:flex; align-items:center; gap:11px; font-weight:700; letter-spacing:-.01em;}
   .brand .mark{
-    width:26px; height:26px; display:grid; place-items:center;
-    background:var(--ink); color:var(--accent);
-    font-size:11px; font-weight:700; letter-spacing:0;
+    width:34px;height:34px; border-radius:11px; display:grid; place-items:center;
+    background:var(--grad); color:#fff; font-size:12px; font-weight:700;
+    box-shadow:0 8px 18px -6px rgba(37,99,235,.7), inset 0 1px 0 rgba(255,255,255,.5);
   }
-  .topbar nav{display:flex; gap:22px;}
-  .topbar nav a{text-decoration:none; color:var(--muted); transition:color .15s;}
-  .topbar nav a:hover{color:var(--ink);}
-  .topbar .ver{color:var(--muted);}
+  .brand .txt{font-family:"Fraunces",Georgia,serif; font-size:20px; font-weight:700;}
+  .brand .txt small{font-family:"Inter",sans-serif; font-weight:500; font-size:12px; color:var(--ink-mute); letter-spacing:.02em;}
+  .topbar nav{display:flex; gap:6px;}
+  .topbar nav a{
+    text-decoration:none; font-size:13.5px; font-weight:500; color:var(--ink-soft);
+    padding:7px 13px; border-radius:999px; transition:.18s;
+  }
+  .topbar nav a:hover{background:rgba(255,255,255,.6); color:var(--blue-700);}
+  .ver{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--ink-mute); padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.5); border:1px solid var(--glass-line);}
 
-  /* ---------- hero ---------- */
-  .hero{padding:74px 0 46px; border-bottom:1px solid var(--line);}
+  /* ---- hero ---- */
+  .hero{padding:clamp(44px,7vw,86px) 0 clamp(30px,5vw,48px); text-align:center;}
   .eyebrow{
-    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.16em;
-    text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 22px;
-    display:flex; align-items:center; gap:12px;
+    display:inline-flex; align-items:center; gap:9px;
+    font-size:12.5px; font-weight:600; letter-spacing:.02em; color:var(--blue-700);
+    padding:7px 15px; border-radius:999px; margin:0 0 22px;
+    background:rgba(255,255,255,.6); border:1px solid var(--glass-line);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    box-shadow:0 6px 18px -10px rgba(37,99,235,.5);
   }
-  .eyebrow::after{content:""; height:1px; flex:1; background:var(--line);}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);box-shadow:0 0 0 3px rgba(56,189,248,.25);}
   h1{
-    font-family:"Fraunces",Georgia,serif; font-weight:900; font-style:normal;
-    font-size:clamp(42px,7.2vw,86px); line-height:.96; letter-spacing:-.02em;
-    margin:0 0 28px; max-width:16ch;
+    font-family:"Fraunces",Georgia,serif; font-weight:600;
+    font-size:clamp(34px,6.4vw,68px); line-height:1.02; letter-spacing:-.025em;
+    margin:0 auto 22px; max-width:19ch; color:var(--blue-900);
   }
-  h1 em{font-style:italic; font-weight:400; color:var(--accent);}
-  .lede{max-width:60ch; font-size:18px; color:var(--ink-soft); margin:0;}
-  .lede b{font-weight:600; border-bottom:2px solid var(--accent); padding-bottom:1px;}
+  h1 .hl{
+    font-style:italic; font-weight:600;
+    background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .lede{max-width:62ch; margin:0 auto; color:var(--ink-soft); font-size:clamp(15px,1.7vw,17.5px);}
+  .lede b{color:var(--blue-700); font-weight:600;}
 
-  /* ---------- search ---------- */
-  .search{padding:38px 0 10px;}
+  /* ---- search ---- */
+  .search{max-width:760px; margin:clamp(28px,4vw,40px) auto 0;}
   .field{
-    display:flex; align-items:stretch; gap:0;
-    border:1px solid var(--line-strong); background:var(--paper);
+    display:flex; align-items:center; gap:8px; padding:8px 8px 8px 16px;
+    border-radius:999px;
   }
-  .field:focus-within{box-shadow:5px 5px 0 var(--ink); transform:translate(-1px,-1px);}
-  .field .prefix{
-    display:flex; align-items:center; padding:0 16px; border-right:1px solid var(--line);
-    font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); white-space:nowrap;
-  }
+  .field .ico{color:var(--ink-mute); flex:none; display:grid; place-items:center;}
   .field input{
-    flex:1; min-width:0; border:0; background:transparent; color:var(--ink);
-    font-family:"IBM Plex Mono",monospace; font-size:15px; padding:18px 16px; outline:none;
+    flex:1; min-width:0; border:0; background:transparent; outline:none;
+    color:var(--ink); font-size:15.5px; padding:12px 4px; font-weight:500;
   }
-  .field input::placeholder{color:#9C9686;}
+  .field input::placeholder{color:var(--ink-mute); font-weight:400;}
   .field button{
-    border:0; border-left:1px solid var(--line-strong); cursor:pointer;
-    background:var(--ink); color:var(--paper);
-    font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
-    letter-spacing:.06em; text-transform:uppercase; padding:0 26px;
-    transition:background .15s;
+    flex:none; border:0; cursor:pointer; color:#fff; font-weight:600; font-size:14.5px;
+    padding:13px 26px; border-radius:999px; background:var(--grad);
+    box-shadow:0 12px 26px -10px rgba(37,99,235,.75), inset 0 1px 0 rgba(255,255,255,.4);
+    transition:transform .15s, box-shadow .15s, filter .15s;
+    display:inline-flex; align-items:center; gap:8px;
   }
-  .field button:hover{background:var(--accent);}
-  .field button:disabled{background:var(--muted); cursor:wait;}
+  .field button:hover{transform:translateY(-1px); filter:brightness(1.05);}
+  .field button:active{transform:translateY(0);}
+  .field button:disabled{filter:grayscale(.3) opacity(.75); cursor:wait;}
   .examples{
-    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
-    margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    margin-top:16px; display:flex; gap:9px; flex-wrap:wrap; justify-content:center; align-items:center;
+    font-size:13px; color:var(--ink-mute);
   }
-  .examples .chip{
-    border:1px solid var(--line); padding:3px 9px; cursor:pointer; background:transparent;
-    font:inherit; color:var(--ink-soft); transition:.15s;
+  .chip{
+    border:1px solid var(--glass-line); background:rgba(255,255,255,.5); cursor:pointer;
+    color:var(--ink-soft); font:inherit; font-size:12.5px; padding:6px 13px; border-radius:999px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:.18s;
   }
-  .examples .chip:hover{border-color:var(--ink); background:var(--paper-2);}
+  .chip:hover{color:var(--blue-700); background:#fff; transform:translateY(-1px);}
 
-  /* ---------- status ---------- */
-  .status{padding:26px 0; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted);}
-  .status .dots span{
-    display:inline-block; width:6px; height:6px; margin-right:5px; background:var(--accent);
-    animation:blink 1s infinite both;
-  }
-  .status .dots span:nth-child(2){animation-delay:.2s;}
-  .status .dots span:nth-child(3){animation-delay:.4s;}
-  @keyframes blink{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
+  /* ---- status ---- */
+  .status{max-width:760px; margin:26px auto 0; text-align:center; font-size:14px; color:var(--ink-soft); display:flex; align-items:center; justify-content:center; gap:10px;}
+  .loader{width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(37,99,235,.25);border-top-color:var(--blue-600);animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
 
-  /* ---------- results ---------- */
-  #result{padding-bottom:40px;}
-  .section-label{
-    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em;
-    text-transform:uppercase; color:var(--muted); font-weight:600;
-    display:flex; align-items:center; gap:14px; margin:34px 0 18px;
-  }
-  .section-label::after{content:""; flex:1; height:1px; background:var(--line);}
-  .section-label .count{color:var(--accent);}
+  /* ---- results ---- */
+  #result{padding:clamp(28px,4vw,44px) 0 20px;}
+  .resultgrid{display:grid; grid-template-columns:minmax(260px,320px) 1fr; gap:22px; align-items:start;}
+  @media (max-width:880px){ .resultgrid{grid-template-columns:1fr;} }
 
-  .videocard{border:1px solid var(--line-strong); padding:0; margin-top:34px; background:var(--paper);}
-  .videocard .bar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:10px 16px; border-bottom:1px solid var(--line);
-    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  .section-head{display:flex; align-items:center; gap:12px; margin:0 0 16px; }
+  .section-head h3{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:22px; margin:0; color:var(--blue-900);}
+  .section-head .count{
+    font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:600; color:#fff;
+    background:var(--grad); padding:3px 11px; border-radius:999px;
   }
-  .videocard .bar b{color:var(--ink);}
-  .videocard .body{display:flex; gap:20px; padding:20px 16px; align-items:flex-start;}
-  .videocard img{width:96px; height:128px; object-fit:cover; border:1px solid var(--line); flex:none; background:#000;}
-  .videocard h2{
-    font-family:"Fraunces",Georgia,serif; font-size:22px; line-height:1.25; font-weight:600;
-    margin:0 0 10px; max-width:52ch;
-  }
-  .meta{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 14px;}
-  .meta b{color:var(--ink-soft); font-weight:600;}
-  .bio{margin-top:12px; font-size:14px; color:var(--ink-soft); border-left:2px solid var(--accent); padding-left:12px;}
 
-  .link{
-    border:1px solid var(--line); border-left:4px solid var(--line);
-    padding:18px 20px; margin-bottom:12px; background:var(--paper);
-    transition:transform .12s, box-shadow .12s;
+  /* preview */
+  .preview{padding:14px; position:sticky; top:84px;}
+  @media (max-width:880px){ .preview{position:static;} }
+  .preview .bar{display:flex; align-items:center; justify-content:space-between; margin:0 4px 12px; font-size:12px; color:var(--ink-mute);}
+  .preview .bar .live{display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--blue-700);}
+  .preview .bar .live .pulse{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.8s infinite;}
+  @keyframes pulse{70%{box-shadow:0 0 0 8px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
+  .frame{
+    position:relative; width:100%; aspect-ratio:9/16; border-radius:16px; overflow:hidden;
+    background:linear-gradient(160deg,#0b2a5b,#1d4ed8); box-shadow:0 14px 34px -14px rgba(11,42,91,.7);
   }
-  .link:hover{transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--ink);}
-  .link.pri{border-left-color:var(--accent);}
-  .link.t-drive{border-left-color:var(--drive);}
-  .link.t-alight{border-left-color:var(--alight);}
-  .link .row1{display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;}
-  .link .idx{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); font-weight:600;}
-  .tag{
-    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
-    padding:3px 8px; border:1px solid var(--ink); font-weight:600;
+  .frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
+  .frame .poster{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .frame .fallback{
+    position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    text-align:center; padding:20px; color:#fff;
   }
-  .tag.drive{background:var(--drive); color:#fff; border-color:var(--drive);}
-  .tag.alight{background:var(--alight); color:#fff; border-color:var(--alight);}
-  .tag.other{background:transparent; color:var(--muted); border-color:var(--line);}
-  .tag.hint{background:transparent; color:var(--warn); border-color:var(--warn);}
-  .tag.src{background:var(--paper-2); border-color:var(--line); color:var(--ink-soft);}
-  .link .score{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);}
-  .link .score b{color:var(--ink);}
-  .link .url{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:500; word-break:break-all; display:flex; gap:10px; align-items:baseline;}
-  .link .url a{text-decoration:none; border-bottom:1px solid var(--accent); color:var(--ink); transition:.15s;}
-  .link .url a:hover{background:var(--accent); color:#fff;}
+  .frame .fallback .ic{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;border:1px solid rgba(255,255,255,.35);}
+  .preview .meta{margin:14px 4px 4px;}
+  .preview .meta h4{font-family:"Fraunces",Georgia,serif; font-size:18px; font-weight:600; margin:0 0 6px; line-height:1.28; color:var(--blue-900);}
+  .preview .stats{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .pill{font-size:11.5px; font-weight:500; color:var(--ink-soft); background:rgba(255,255,255,.6); border:1px solid var(--glass-line); padding:4px 10px; border-radius:999px;}
+  .pill b{color:var(--blue-700);}
+  .preview .bio{margin:12px 4px 4px; font-size:13px; color:var(--ink-soft); border-left:2px solid var(--blue-600); padding-left:11px;}
+  .btn-open{
+    display:flex; align-items:center; justify-content:center; gap:8px; margin:14px 4px 2px;
+    text-decoration:none; font-size:14px; font-weight:600; color:var(--blue-700);
+    background:rgba(255,255,255,.66); border:1px solid var(--glass-line); border-radius:14px; padding:11px;
+    transition:.18s;
+  }
+  .btn-open:hover{background:#fff; transform:translateY(-1px);}
+
+  /* link cards */
+  .linkcard{padding:18px; margin-bottom:14px; position:relative; overflow:hidden; transition:transform .16s, box-shadow .16s;}
+  .linkcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--grad);}
+  .linkcard.t-alight::before{background:linear-gradient(180deg,#0ea5e9,#38bdf8);}
+  .linkcard:hover{transform:translateY(-3px); box-shadow:0 26px 60px -22px rgba(23,58,120,.55);}
+  .linkcard .head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:13px;}
+  .badge{
+    display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:#fff;
+    padding:5px 13px; border-radius:999px; background:var(--grad-2);
+    box-shadow:0 8px 18px -9px rgba(37,99,235,.9);
+  }
+  .badge.alight{background:linear-gradient(135deg,#0284c7,#38bdf8);}
+  .badge .ic{width:15px;height:15px;}
+  .src{
+    font-size:11.5px; font-weight:600; color:var(--blue-700);
+    background:rgba(37,99,235,.1); border:1px solid rgba(37,99,235,.18);
+    padding:4px 11px; border-radius:999px;
+  }
+  .score{margin-left:auto; font-family:"JetBrains Mono",monospace; font-size:11.5px; color:var(--ink-mute);}
+  .score b{color:var(--blue-700);}
+  .urlrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .urlrow a{
+    font-family:"JetBrains Mono",monospace; font-size:13.5px; font-weight:500; color:var(--blue-800);
+    text-decoration:none; word-break:break-all; border-bottom:1.5px solid rgba(37,99,235,.35);
+    transition:.16s; flex:1; min-width:0;
+  }
+  .urlrow a:hover{color:var(--blue-600); border-color:var(--blue-600);}
   .copy{
-    border:1px solid var(--line); background:transparent; cursor:pointer;
-    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase;
-    padding:2px 7px; color:var(--muted); flex:none; transition:.15s;
+    flex:none; border:1px solid var(--glass-line); background:rgba(255,255,255,.6); cursor:pointer;
+    color:var(--ink-soft); font-size:12px; font-weight:600; padding:7px 14px; border-radius:10px; transition:.16s;
+    display:inline-flex; align-items:center; gap:6px;
   }
-  .copy:hover{border-color:var(--ink); color:var(--ink);}
-  .copy.done{background:var(--drive); border-color:var(--drive); color:#fff;}
-  .link .ctx{margin:12px 0 0; font-size:14px; color:var(--ink-soft); border-left:1px solid var(--line); padding-left:12px;}
-  .link .ctx em{color:var(--muted);}
-  .reasons{list-style:none; padding:0; margin:12px 0 0; display:flex; flex-wrap:wrap; gap:6px;}
-  .reasons li{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); background:var(--paper-2); border:1px solid var(--line); padding:2px 8px;}
+  .copy:hover{background:#fff; color:var(--blue-700);}
+  .copy.done{background:#dcfce7; border-color:#86efac; color:#16a34a;}
+  .ctx{margin:14px 0 0; font-size:13.5px; color:var(--ink-soft); background:rgba(255,255,255,.45); border-radius:12px; padding:11px 13px; border:1px solid rgba(255,255,255,.7);}
+  .ctx em{color:var(--ink-mute); font-style:normal; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:3px;}
+  .reasons{list-style:none; padding:0; margin:12px 0 0; display:flex; flex-wrap:wrap; gap:7px;}
+  .reasons li{font-size:11.5px; color:var(--ink-soft); background:rgba(255,255,255,.55); border:1px solid var(--glass-line); padding:4px 10px; border-radius:999px;}
 
-  .notice{border:1px solid var(--line); border-left:4px solid var(--accent); padding:16px 20px; margin-top:18px; font-size:14px; color:var(--ink-soft);}
-  .notice.warn{border-left-color:var(--warn);}
-  .error{border:1px solid var(--accent); background:#FBEAE6; padding:18px 20px; margin-top:30px;}
-  .error b{font-family:"IBM Plex Mono",monospace; text-transform:uppercase; font-size:12px; letter-spacing:.1em; color:var(--accent-dark);}
-  .error p{margin:8px 0 0; font-size:14px; color:var(--ink-soft);}
+  /* notices */
+  .notice{padding:16px 18px; margin-top:14px; font-size:14px; color:var(--ink-soft); display:flex; gap:12px; align-items:flex-start;}
+  .notice .ic{flex:none; width:22px;height:22px;color:var(--blue-600);}
+  .empty{padding:40px 24px; text-align:center; color:var(--ink-soft); font-size:14.5px;}
+  .empty .big{font-family:"Fraunces",Georgia,serif; font-size:20px; color:var(--blue-900); margin-bottom:6px; font-weight:600;}
+  .error{padding:20px; margin-top:26px; border-left:4px solid #ef4444;}
+  .error b{color:#b91c1c; font-size:15px;}
+  .error p{margin:8px 0 0; font-size:14px; color:var(--ink-soft); word-break:break-word;}
 
-  .empty{border:1px dashed var(--line); padding:34px 20px; text-align:center; color:var(--muted); font-family:"IBM Plex Mono",monospace; font-size:13px;}
-
-  /* ---------- explainer ---------- */
-  .about{border-top:1px solid var(--line-strong); margin-top:40px; padding:56px 0 10px;}
-  .about h3{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:30px; margin:0 0 8px;}
-  .about .sub{color:var(--muted); max-width:62ch; margin:0 0 40px; font-size:15px;}
-  .cols{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1px solid var(--line);}
-  .col{padding:26px 24px 30px 0; border-right:1px solid var(--line);}
-  .col:last-child{border-right:0; padding-right:0;}
-  .col .no{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--accent); font-weight:600;}
-  .col h4{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:19px; margin:10px 0 8px;}
-  .col p{font-size:14px; color:var(--ink-soft); margin:0;}
-  .prio-strip{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:40px; border:1px solid var(--line-strong);}
-  .prio{padding:24px; }
-  .prio:first-child{border-right:1px solid var(--line-strong);}
-  .prio .k{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:600;}
-  .prio .k.drive{color:var(--drive);}
-  .prio .k.alight{color:var(--alight);}
-  .prio .v{font-family:"IBM Plex Mono",monospace; font-size:15px; margin-top:8px; word-break:break-all;}
-  .prio p{margin:8px 0 0; font-size:14px; color:var(--ink-soft);}
-
-  /* ---------- footer ---------- */
-  footer{border-top:1px solid var(--line-strong); margin-top:56px; padding:28px 0 60px;
-    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
-    display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap;}
-  footer a{text-decoration:none; border-bottom:1px solid var(--line);}
-  footer a:hover{border-color:var(--accent); color:var(--ink);}
-
-  details.srcbox{margin-top:18px;}
-  details.srcbox summary{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); cursor:pointer; list-style:none;}
+  details.srcbox{margin-top:16px; padding:16px 18px;}
+  details.srcbox summary{cursor:pointer; list-style:none; font-size:13.5px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:9px;}
   details.srcbox summary::-webkit-details-marker{display:none;}
-  details.srcbox summary::before{content:"▸ "; color:var(--accent);}
-  details.srcbox[open] summary::before{content:"▾ ";}
-  .src{margin-top:12px; border:1px solid var(--line); padding:14px 16px; background:var(--paper-2);}
-  .src .h{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
-  .src p{margin:0; font-size:14px; color:var(--ink-soft); white-space:pre-wrap; word-break:break-word;}
+  details.srcbox summary .arw{transition:transform .2s; color:var(--blue-600);}
+  details.srcbox[open] summary .arw{transform:rotate(90deg);}
+  .srcitem{margin-top:12px; background:rgba(255,255,255,.5); border:1px solid var(--glass-line); border-radius:14px; padding:13px 15px;}
+  .srcitem .h{display:flex; gap:8px; align-items:center; margin-bottom:7px; flex-wrap:wrap;}
+  .srcitem p{margin:0; font-size:13.5px; color:var(--ink-soft); white-space:pre-wrap; word-break:break-word;}
 
-  @media (max-width:760px){
-    .shell{padding:0 18px;}
+  /* ---- explainer ---- */
+  .about{margin-top:clamp(40px,6vw,72px);}
+  .about .head{text-align:center; margin-bottom:30px;}
+  .about h2{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:clamp(26px,4vw,38px); color:var(--blue-900); margin:0 0 12px; letter-spacing:-.02em;}
+  .about .head p{max-width:64ch; margin:0 auto; color:var(--ink-soft); font-size:16px;}
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  @media (max-width:820px){ .steps{grid-template-columns:1fr;} }
+  .step{padding:24px;}
+  .step .no{
+    width:40px;height:40px;border-radius:12px; display:grid; place-items:center;
+    font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:18px; color:#fff;
+    background:var(--grad); box-shadow:0 10px 22px -10px rgba(37,99,235,.8); margin-bottom:16px;
+  }
+  .step h4{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:19px; margin:0 0 8px; color:var(--blue-900);}
+  .step p{margin:0; font-size:14px; color:var(--ink-soft);}
+
+  .prio{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:20px;}
+  @media (max-width:820px){ .prio{grid-template-columns:1fr;} }
+  .priocard{padding:22px; display:flex; gap:16px; align-items:flex-start;}
+  .priocard .ic{
+    flex:none; width:46px;height:46px;border-radius:13px; display:grid; place-items:center; color:#fff;
+    background:var(--grad-2); box-shadow:0 10px 24px -10px rgba(37,99,235,.8);
+  }
+  .priocard.alight .ic{background:linear-gradient(135deg,#0284c7,#38bdf8);}
+  .priocard h4{font-family:"Fraunces",Georgia,serif; font-size:18px; margin:0 0 4px; color:var(--blue-900); font-weight:600;}
+  .priocard .dom{font-family:"JetBrains Mono",monospace; font-size:12.5px; color:var(--blue-700); word-break:break-all;}
+  .priocard p{margin:8px 0 0; font-size:13.5px; color:var(--ink-soft);}
+
+  /* ---- footer ---- */
+  footer{margin-top:clamp(44px,6vw,72px); padding:26px 0 60px; text-align:center; font-size:13px; color:var(--ink-mute);}
+  footer .line{max-width:720px; margin:0 auto 8px;}
+  footer a{color:var(--blue-700); text-decoration:none; border-bottom:1px solid rgba(37,99,235,.35);}
+  footer a:hover{border-color:var(--blue-700);}
+
+  @media (max-width:560px){
     .topbar nav{display:none;}
-    .cols{grid-template-columns:1fr;}
-    .col{border-right:0; border-bottom:1px solid var(--line); padding:22px 0;}
-    .col:last-child{border-bottom:0;}
-    .prio-strip{grid-template-columns:1fr;}
-    .prio:first-child{border-right:0; border-bottom:1px solid var(--line-strong);}
-    .field{flex-wrap:wrap;}
-    .field .prefix{border-right:0; border-bottom:1px solid var(--line); width:100%; padding:10px 16px;}
-    .field input{flex:1 1 60%;}
-    .field button{padding:0 18px;}
-    .videocard .body{flex-direction:column;}
-    .videocard img{width:120px; height:160px;}
-    .about h3{font-size:24px;}
+    .field{flex-wrap:wrap; border-radius:20px; padding:12px;}
+    .field input{flex:1 1 100%; padding:10px 6px;}
+    .field button{flex:1 1 100%; justify-content:center; margin-top:6px;}
+    .resultgrid{gap:18px;}
+    .preview{padding:12px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .orb{animation:none;} *{scroll-behavior:auto;}
   }
 </style>
 </head>
 <body>
-<div class="shell">
+<div class="orbs" aria-hidden="true">
+  <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span><span class="orb d"></span>
+</div>
 
-  <div class="topbar">
-    <div class="brand"><span class="mark">AF</span> am-finder</div>
+<div class="shell">
+  <div class="topbar glass">
+    <div class="brand">
+      <span class="mark">AF</span>
+      <span class="txt">am-finder <small>preset finder</small></span>
+    </div>
     <nav>
       <a href="#cari">Cari</a>
       <a href="#cara">Cara kerja</a>
       <a href="#prioritas">Prioritas</a>
     </nav>
-    <span class="ver" id="ver">v0.2.0</span>
+    <span class="ver">v0.3.0</span>
   </div>
 
   <header class="hero" id="cari">
-    <p class="eyebrow">Alight Motion · Pencari Tautan Preset</p>
-    <h1>Preset-nya ada di balik <em>ribuan komentar.</em></h1>
+    <span class="eyebrow"><span class="dot"></span> Alight Motion · XML &amp; Project Finder</span>
+    <h1>Preset-nya tersembunyi di balik <span class="hl">ribuan komentar.</span></h1>
     <p class="lede">
-      Tempel tautan video TikTok, dan <b>am-finder</b> akan menyisir deskripsi,
-      komentar (termasuk yang disematkan), serta bio kreator untuk menemukan
-      tautan preset Alight Motion — lalu menyusunnya berdasarkan tingkat
-      kepercayaan.
+      Tempel tautan video TikTok, dan <b>am-finder</b> menyisir deskripsi, komentar
+      (termasuk yang disematkan), serta bio kreator untuk menemukan tautan
+      <b>preset XML</b> dan <b>Alight Motion</b> — lengkap dengan pratinjau videonya.
     </p>
-  </header>
 
-  <!-- SEARCH -->
-  <form class="search" id="form">
-    <div class="field">
-      <span class="prefix">tiktok.com/</span>
-      <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false"
-             placeholder="@user/video/123…  atau  vt.tiktok.com/ZS…" required />
-      <button id="btn" type="submit">Cari →</button>
+    <form class="search" id="form">
+      <div class="field glass">
+        <span class="ico" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="Tempel tautan TikTok — @user/video/… atau vt.tiktok.com/…" required />
+        <button id="btn" type="submit">
+          Cari
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </form>
+    <div class="examples">
+      <span>Contoh:</span>
+      <button type="button" class="chip" data-ex="https://www.tiktok.com/@user/video/7300000000000000000">URL video penuh</button>
+      <button type="button" class="chip" data-ex="https://vt.tiktok.com/ZSxxxxxx/">tautan pendek vt.tiktok.com</button>
     </div>
-  </form>
-  <div class="examples">
-    <span>Contoh:</span>
-    <button type="button" class="chip" data-ex="https://www.tiktok.com/@user/video/7300000000000000000">URL video penuh</button>
-    <button type="button" class="chip" data-ex="https://vt.tiktok.com/ZSxxxxxx/">tautan pendek vt.tiktok.com</button>
-  </div>
+  </header>
 
   <div id="status" class="status"></div>
   <div id="result"></div>
 
   <!-- EXPLAINER -->
   <section class="about" id="cara">
-    <h3>Untuk apa situs ini?</h3>
-    <p class="sub">
-      Pembuat preset Alight Motion sering menaruh tautan unduhan di tempat yang
-      sulit dijangkau: deskripsi yang tidak bisa disalin, komentar yang tenggelam
-      di antara ribuan pesan, atau diarahkan ke bio. am-finder mengumpulkan
-      semuanya dalam sekali tempel.
-    </p>
-    <div class="cols">
-      <div class="col">
-        <span class="no">01</span>
+    <div class="head">
+      <h2>Untuk apa situs ini?</h2>
+      <p>
+        Pembuat preset Alight Motion sering menaruh tautan unduhan di tempat yang
+        sulit dijangkau: deskripsi yang tak bisa disalin, komentar yang tenggelam di
+        antara ribuan pesan, atau diarahkan ke bio. am-finder mengumpulkan semuanya
+        dalam sekali tempel — lalu menyaring hanya yang relevan.
+      </p>
+    </div>
+
+    <div class="steps">
+      <div class="step glass">
+        <div class="no">1</div>
         <h4>Tempel tautan</h4>
-        <p>Masukkan URL video TikTok — bentuk penuh atau tautan pendek. Tidak perlu masuk atau menyetujui apa pun.</p>
+        <p>Masukkan URL video TikTok — bentuk penuh atau tautan pendek. Tanpa login, tanpa izin tambahan.</p>
       </div>
-      <div class="col">
-        <span class="no">02</span>
+      <div class="step glass">
+        <div class="no">2</div>
         <h4>Tepi dipindai</h4>
-        <p>Deskripsi, bio kreator, dan komentar dibaca. Komentar yang disematkan dan milik kreator diprioritaskan.</p>
+        <p>Deskripsi, bio kreator, dan komentar dibaca otomatis. Komentar disematkan dan milik kreator diutamakan.</p>
       </div>
-      <div class="col">
-        <span class="no">03</span>
-        <h4>Tautan disusun</h4>
-        <p>Setiap tautan diberi tingkat kepercayaan beserta alasannya, jadi Anda tahu mana yang layak dibuka lebih dulu.</p>
+      <div class="step glass">
+        <div class="no">3</div>
+        <h4>Hasil disaring</h4>
+        <p>Hanya tautan <b>XML</b> (Google Drive) dan <b>Alight Motion</b> yang ditampilkan, dengan pratinjau video untuk verifikasi.</p>
       </div>
     </div>
 
-    <div id="prioritas" style="margin-top:44px">
-      <p class="eyebrow" style="margin-bottom:16px">Yang diprioritaskan</p>
-      <div class="prio-strip">
-        <div class="prio">
-          <span class="k drive">Prioritas 1</span>
-          <div class="v">drive.google.com · docs.google.com</div>
-          <p>Tempat berbagi preset paling umum. URL bentuk <span style="font-family:'IBM Plex Mono',monospace">open?id=</span> otomatis dirapikan ke bentuk kanonik, begitu pula folder.</p>
+    <div id="prioritas" style="margin-top:22px">
+      <div class="prio">
+        <div class="priocard glass">
+          <span class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h2"/></svg>
+          </span>
+          <div>
+            <h4>XML · Google Drive</h4>
+            <div class="dom">drive.google.com · docs.google.com</div>
+            <p>Tempat berbagi preset paling umum. Tautan <span style="font-family:'JetBrains Mono',monospace">open?id=</span> dan folder otomatis dirapikan ke bentuk kanonik.</p>
+          </div>
         </div>
-        <div class="prio">
-          <span class="k alight">Prioritas 2</span>
-          <div class="v">alightcreative.com</div>
-          <p>Tautan resmi berbagi proyek Alight Motion. Domain lain seperti MediaFire, Mega, atau link pendek tetap ditampilkan sebagai prioritas rendah.</p>
+        <div class="priocard alight glass">
+          <span class="ic">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L12 16.9 6.4 20l1.4-6.2L3 9.5l6.4-.6z"/></svg>
+          </span>
+          <div>
+            <h4>Alight Motion</h4>
+            <div class="dom">alightcreative.com</div>
+            <p>Tautan resmi berbagi proyek Alight Motion. Domain lain (MediaFire, Mega, link pendek) sengaja tidak ditampilkan.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <footer>
-    <span>am-finder · pengambil data pihak ketiga, tanpa afiliasi dengan TikTok atau Alight Creative.</span>
-    <span>Dibuat untuk komunitas editor · <a href="#cari">coba sekarang</a></span>
+    <div class="line">am-finder · mengambil data lewat penyedia pihak ketiga. Tidak berafiliasi dengan TikTok maupun Alight Creative.</div>
+    <div>Dibuat untuk komunitas editor · <a href="#cari">coba sekarang</a></div>
   </footer>
-
 </div>
 
 <script>
@@ -356,7 +423,7 @@
   var statusEl = document.getElementById("status");
   var resultEl = document.getElementById("result");
 
-  var TIER_LABEL = { drive: "Google Drive", alight: "Alight Motion" };
+  var SRC_LABEL = { description: "Deskripsi", bio: "Bio kreator", pinned_comment: "Komentar disematkan", comment: "Komentar" };
 
   function esc(s) {
     return (s == null ? "" : String(s)).replace(/[&<>"']/g, function (c) {
@@ -364,36 +431,24 @@
     });
   }
 
-  function tierTag(link) {
-    if (link.tier === "drive") return '<span class="tag drive">Drive</span>';
-    if (link.tier === "alight") return '<span class="tag alight">Alight Motion</span>';
-    if (link.tier === "hint") return '<span class="tag hint">Petunjuk</span>';
-    return '<span class="tag other">Lain</span>';
+  function badge(link) {
+    var isAlight = link.tier === "alight";
+    var ic = isAlight
+      ? '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L12 16.9 6.4 20l1.4-6.2L3 9.5l6.4-.6z"/></svg>'
+      : '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+    return '<span class="badge' + (isAlight ? " alight" : "") + '">' + ic + esc(link.name || (isAlight ? "Alight Motion" : "XML")) + "</span>";
   }
 
-  function sourceTag(src) {
-    var map = { description: "Deskripsi", bio: "Bio", pinned_comment: "Disematkan", comment: "Komentar" };
-    return '<span class="tag src">' + (map[src] || src) + "</span>";
-  }
-
-  function linkCard(link, n) {
-    var cls = "link" + (link.priority ? " pri" : "") + " t-" + (link.tier || "other");
-    var h = '<div class="' + cls + '">';
-    h += '<div class="row1">';
-    h += '<span class="idx">' + String(n).padStart(2, "0") + "</span>";
-    h += tierTag(link);
-    h += sourceTag(link.source);
-    h += '<span class="score">skor <b>' + link.score + "</b></span>";
-    h += "</div>";
-
-    if (link.url) {
-      h += '<div class="url"><a href="' + esc(link.url) + '" target="_blank" rel="noopener noreferrer">' + esc(link.url) + "</a>";
-      h += '<button class="copy" type="button" data-copy="' + esc(link.url) + '">salin</button></div>';
-    } else {
-      h += '<div class="url" style="color:var(--warn)">Tautan tidak tampak langsung — lihat konteks.</div>';
-    }
-
-    if (link.context) h += '<p class="ctx">' + esc(link.context) + "</p>";
+  function linkCard(link) {
+    var h = '<div class="linkcard glass t-' + esc(link.tier) + '">';
+    h += '<div class="head">' + badge(link);
+    if (link.source) h += '<span class="src">' + esc(SRC_LABEL[link.source] || link.source) + "</span>";
+    h += '<span class="score">skor <b>' + link.score + "</b></span></div>";
+    h += '<div class="urlrow"><a href="' + esc(link.url) + '" target="_blank" rel="noopener noreferrer">' + esc(link.url) + "</a>";
+    h += '<button class="copy" type="button" data-copy="' + esc(link.url) + '">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>' +
+      "salin</button></div>";
+    if (link.context) h += '<p class="ctx"><em>konteks</em>' + esc(link.context) + "</p>";
     if (link.reasons && link.reasons.length) {
       h += '<ul class="reasons">' + link.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>";
     }
@@ -404,102 +459,139 @@
   function render(data) {
     var v = data.video || {};
     var links = data.links || [];
-    var priority = links.filter(function (l) { return l.priority; });
-    var others = links.filter(function (l) { return !l.priority; });
     var html = "";
 
-    // video card
-    html += '<div class="videocard"><div class="bar">';
-    html += "<span>Video · <b>@" + esc(v.author || "?") + "</b></span>";
-    html += "<span>" + (data.comments_scanned || 0) + " komentar dipindai · " + (data.pinned_comments || 0) + " disematkan · " + (data.elapsed_ms || 0) + " ms</span>";
-    html += "</div><div class=\"body\">";
-    if (v.cover) html += '<img src="' + esc(v.cover) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'" />';
-    html += "<div>";
-    html += "<h2>" + esc(v.title || "(tanpa deskripsi)") + "</h2>";
-    html += '<div class="meta">';
-    if (v.duration) html += "<span>durasi <b>" + v.duration + "s</b></span>";
-    if (v.comment_count) html += "<span>total komentar <b>" + v.comment_count + "</b></span>";
-    html += "<span>sumber data <b>" + esc(data.provider || "-") + "</b></span>";
+    html += '<div class="section-head"><h3>Hasil pencarian</h3>' +
+      '<span class="count">' + links.length + " tautan</span></div>";
+
+    html += '<div class="resultgrid">';
+
+    // --- preview kolom ---
+    html += '<aside class="preview glass">';
+    html += '<div class="bar"><span class="live"><span class="pulse"></span>Pratinjau</span>' +
+      "<span>" + (data.elapsed_ms || 0) + " ms</span></div>";
+    html += '<div class="frame" id="vframe">';
+    if (v.cover) html += '<img class="poster" src="' + esc(v.cover) + '" alt="Pratinjau video" referrerpolicy="no-referrer" />';
+    if (v.embed_url) {
+      html += '<iframe src="' + esc(v.embed_url) + '" loading="lazy" allow="encrypted-media; fullscreen; picture-in-picture" ' +
+        'allowfullscreen referrerpolicy="unsafe-url" scrolling="no"></iframe>';
+    }
+    html += '<div class="fallback">' +
+      '<span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>' +
+      "<div>Pratinjau tidak tersedia di sini.<br/>Buka video langsung di TikTok.</div></div>";
     html += "</div>";
-    if (v.author_signature) html += '<p class="bio">Bio: ' + esc(v.author_signature) + "</p>";
-    html += "</div></div></div>";
 
-    // priority links
-    if (priority.length) {
-      html += '<div class="section-label">Tautan prioritas <span class="count">' + priority.length + "</span></div>";
-      priority.forEach(function (l, i) { html += linkCard(l, i + 1); });
+    html += '<div class="meta"><h4>' + esc(v.title || "(video tanpa deskripsi)") + "</h4>";
+    html += '<div class="stats">';
+    html += '<span class="pill">@<b>' + esc(v.author || "?") + "</b></span>";
+    if (v.duration) html += '<span class="pill">durasi <b>' + v.duration + "s</b></span>";
+    html += '<span class="pill">dipindai <b>' + (data.comments_scanned || 0) + "</b> komentar</span>";
+    if (data.pinned_comments) html += '<span class="pill"><b>' + data.pinned_comments + "</b> disematkan</span>";
+    html += "</div></div>";
+    if (v.author_signature) html += '<p class="bio">' + esc(v.author_signature) + "</p>";
+    html += '<a class="btn-open" href="' + esc(v.url) + '" target="_blank" rel="noopener noreferrer">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>' +
+      "Buka di TikTok</a>";
+    html += "</aside>";
+
+    // --- links kolom ---
+    html += "<div>";
+    if (links.length) {
+      links.forEach(function (l) { html += linkCard(l); });
+    } else {
+      html += '<div class="empty glass"><div class="big">Tidak ada preset ditemukan</div>' +
+        "Tidak ada tautan XML (Google Drive) atau Alight Motion pada deskripsi, komentar, maupun bio. " +
+        "Tautan mungkin tertulis di dalam video — cek pratinjau di samping.</div>";
     }
-
-    // others
-    if (others.length) {
-      html += '<div class="section-label">Tautan lain <span class="count">' + others.length + "</span></div>";
-      others.forEach(function (l, i) { html += linkCard(l, i + 1); });
-    }
-
-    if (!links.length) {
-      html += '<div class="section-label">Hasil</div>';
-      html += '<div class="empty">Tidak ada tautan ditemukan pada deskripsi, komentar, maupun bio.<br/>Tautan mungkin tertulis di dalam video.</div>';
-    }
-
-    // warnings
-    if (data.warnings && data.warnings.length) {
-      data.warnings.forEach(function (w) { html += '<div class="notice warn">' + esc(w) + "</div>"; });
-    }
-
-    // sources
+    (data.warnings || []).forEach(function (w) {
+      html += '<div class="notice glass"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>' + esc(w) + "</span></div>";
+    });
     if (data.sources && data.sources.length) {
-      html += '<details class="srcbox"><summary>Tampilkan ' + data.sources.length + " sumber teks yang dipindai</summary>";
+      html += '<details class="srcbox glass"><summary><span class="arw">▸</span> Tampilkan ' + data.sources.length + " sumber teks yang dipindai</summary>";
       data.sources.forEach(function (s) {
-        html += '<div class="src"><div class="h">' + sourceTag(s.source) + '<span class="tag src">' + esc(s.label || "") + "</span></div><p>" + esc(s.text) + "</p></div>";
+        html += '<div class="srcitem"><div class="h"><span class="src">' + esc(SRC_LABEL[s.source] || s.source) + "</span>" +
+          '<span class="src" style="background:rgba(255,255,255,.6)">' + esc(s.label || "") + "</span></div><p>" + esc(s.text) + "</p></div>";
       });
       html += "</details>";
     }
+    html += "</div></div>"; // links col + resultgrid
 
     resultEl.innerHTML = html;
 
-    // copy buttons
+    // fallback bila pratinjau tak termuat: tampilkan poster / pesan bila video error.
+    var frame = document.getElementById("vframe");
+    if (frame) {
+      var ifr = frame.querySelector("iframe");
+      var fb = frame.querySelector(".fallback");
+      var poster = frame.querySelector(".poster");
+      var usedFallback = false;
+      function showFallback() {
+        if (usedFallback) return;
+        usedFallback = true;
+        if (ifr) ifr.remove();
+        if (fb) fb.style.display = "flex";
+      }
+      if (poster) poster.addEventListener("error", function () {
+        poster.style.display = "none";
+        showFallback();
+      });
+      if (ifr) {
+        // Jika dalam 6 detik embed belum siap, jangan paksa fallback —
+        // cukup biarkan poster tetap tampil sampai iframe termuat.
+        ifr.addEventListener("load", function () { if (poster) poster.style.display = "none"; });
+        setTimeout(function () {
+          // Deteksi blokir: dokumen iframe kosong / error.
+          try {
+            var doc = ifr.contentDocument;
+            if (doc && doc.body && doc.body.childElementCount === 0 && poster && poster.style.display !== "none") {
+              showFallback();
+            }
+          } catch (e) { /* lintas-origin: normal, biarkan */ }
+        }, 6000);
+      }
+    }
+
     Array.prototype.forEach.call(resultEl.querySelectorAll(".copy"), function (b) {
       b.addEventListener("click", function () {
         var text = b.getAttribute("data-copy");
-        navigator.clipboard.writeText(text).then(function () {
-          var old = b.textContent;
-          b.textContent = "tersalin";
-          b.classList.add("done");
-          setTimeout(function () { b.textContent = old; b.classList.remove("done"); }, 1400);
-        });
+        (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+          .then(function () {
+            b.classList.add("done");
+            b.innerHTML = "tersalin ✓";
+            setTimeout(function () {
+              b.classList.remove("done");
+              b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>salin';
+            }, 1500);
+          })
+          .catch(function () { b.textContent = "gagal"; });
       });
     });
-  }
-
-  function showLoading() {
-    statusEl.innerHTML = '<span class="dots"><span></span><span></span><span></span></span> Membedah deskripsi, komentar, dan bio…';
   }
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     var url = (input.value || "").trim();
     if (!url) return;
-    // izinkan input tanpa skema
     var target = /^https?:\/\//i.test(url) ? url : "https://" + url.replace(/^\/+/, "");
 
     btn.disabled = true;
     resultEl.innerHTML = "";
-    showLoading();
+    statusEl.innerHTML = '<span class="loader"></span> Membedah deskripsi, komentar, dan bio…';
 
     fetch("/api/find?url=" + encodeURIComponent(target))
       .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
       .then(function (r) {
         statusEl.innerHTML = "";
         if (!r.ok) {
-          resultEl.innerHTML = '<div class="error"><b>Gagal</b><p>' + esc(r.data.error || "Kesalahan tidak diketahui") +
-            (r.data.detail ? "<br/>" + esc(r.data.detail) : "") + "</p></div>";
+          resultEl.innerHTML = '<div class="error glass"><b>Gagal mengambil data</b><p>' +
+            esc(r.data.error || "Kesalahan tidak diketahui") + (r.data.detail ? "<br/>" + esc(r.data.detail) : "") + "</p></div>";
           return;
         }
         render(r.data);
       })
       .catch(function (err) {
         statusEl.innerHTML = "";
-        resultEl.innerHTML = '<div class="error"><b>Kesalahan jaringan</b><p>' + esc(String(err)) + "</p></div>";
+        resultEl.innerHTML = '<div class="error glass"><b>Kesalahan jaringan</b><p>' + esc(String(err)) + "</p></div>";
       })
       .then(function () { btn.disabled = false; });
   });

@@ -7,11 +7,19 @@ from typing import Any
 
 from . import tiktok
 from .extractor import (
+    TIER_ALIGHT,
+    TIER_DRIVE,
     LinkCandidate,
     extract_links,
     is_priority_tier,
     rank,
 )
+
+#: Nama tampilan per tier. Hanya dua ini yang ditampilkan.
+_DISPLAY_NAME = {
+    TIER_DRIVE: "XML",
+    TIER_ALIGHT: "Alight Motion",
+}
 
 
 @dataclass
@@ -41,7 +49,20 @@ class FindResult:
         """Tautan yang termasuk tier prioritas (Drive / Alight Motion)."""
         return [c for c in self.links if is_priority_tier(c.tier)]
 
+    @property
+    def visible_links(self) -> list[LinkCandidate]:
+        """Hanya tautan yang layak ditampilkan: XML (Drive) & Alight Motion."""
+        return self.priority_links
+
+    @property
+    def embed_url(self) -> str:
+        """URL embed pemutar TikTok untuk pratinjau."""
+        if not self.video.video_id:
+            return ""
+        return f"https://www.tiktok.com/embed/v2/{self.video.video_id}"
+
     def to_dict(self) -> dict[str, Any]:
+        visible = self.visible_links
         return {
             "video": {
                 "url": self.video.url,
@@ -52,23 +73,26 @@ class FindResult:
                 "duration": self.video.duration,
                 "comment_count": self.video.comment_count,
                 "cover": self.video.cover,
+                "embed_url": self.embed_url,
             },
             "provider": self.provider,
             "comments_scanned": self.comments_scanned,
             "pinned_comments": self.pinned_comments,
-            "priority_count": len(self.priority_links),
+            "priority_count": len(visible),
+            "hidden_count": len(self.links) - len(visible),
             "links": [
                 {
                     "url": c.url,
+                    "name": _DISPLAY_NAME.get(c.tier, "Lain"),
                     "source": c.source,
                     "tier": c.tier,
-                    "priority": is_priority_tier(c.tier),
+                    "priority": True,
                     "context": c.context,
                     "score": c.score,
                     "reasons": c.reasons,
                     "indirect": c.indirect,
                 }
-                for c in self.links
+                for c in visible
             ],
             "sources": [
                 {
@@ -155,16 +179,11 @@ def find(url: str, comment_limit: int = 100) -> FindResult:
     all_candidates = [c for s in sources for c in s.candidates]
     links = rank(all_candidates)
 
-    has_priority = any(is_priority_tier(c.tier) for c in links)
-    if comments and not links:
+    has_visible = any(is_priority_tier(c.tier) for c in links)
+    if not has_visible:
         warnings.append(
-            "Tidak ada tautan yang jelas. Tautan mungkin ada di dalam video "
-            "(harus dibaca manual) atau di bio kreator."
-        )
-    elif links and not has_priority:
-        warnings.append(
-            "Tidak ditemukan tautan Drive/Alight Motion. Tautan lain tetap "
-            "ditampilkan sebagai prioritas rendah."
+            "Tidak ditemukan tautan XML (Google Drive) atau Alight Motion. "
+            "Tautan lain sengaja tidak ditampilkan."
         )
 
     return FindResult(
