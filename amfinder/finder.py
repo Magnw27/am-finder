@@ -6,7 +6,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from . import tiktok
-from .extractor import LinkCandidate, extract_links, rank
+from .extractor import (
+    LinkCandidate,
+    extract_links,
+    is_priority_tier,
+    rank,
+)
 
 
 @dataclass
@@ -31,6 +36,11 @@ class FindResult:
     links: list[LinkCandidate] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
+    @property
+    def priority_links(self) -> list[LinkCandidate]:
+        """Tautan yang termasuk tier prioritas (Drive / Alight Motion)."""
+        return [c for c in self.links if is_priority_tier(c.tier)]
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "video": {
@@ -46,10 +56,13 @@ class FindResult:
             "provider": self.provider,
             "comments_scanned": self.comments_scanned,
             "pinned_comments": self.pinned_comments,
+            "priority_count": len(self.priority_links),
             "links": [
                 {
                     "url": c.url,
                     "source": c.source,
+                    "tier": c.tier,
+                    "priority": is_priority_tier(c.tier),
                     "context": c.context,
                     "score": c.score,
                     "reasons": c.reasons,
@@ -142,10 +155,16 @@ def find(url: str, comment_limit: int = 100) -> FindResult:
     all_candidates = [c for s in sources for c in s.candidates]
     links = rank(all_candidates)
 
+    has_priority = any(is_priority_tier(c.tier) for c in links)
     if comments and not links:
         warnings.append(
-            "Tidak ada link yang jelas. Link mungkin ada di video (harus dibaca "
-            "manual) atau di bio kreator."
+            "Tidak ada tautan yang jelas. Tautan mungkin ada di dalam video "
+            "(harus dibaca manual) atau di bio kreator."
+        )
+    elif links and not has_priority:
+        warnings.append(
+            "Tidak ditemukan tautan Drive/Alight Motion. Tautan lain tetap "
+            "ditampilkan sebagai prioritas rendah."
         )
 
     return FindResult(

@@ -1,21 +1,32 @@
 # am-finder
 
-Temukan **link preset Alight Motion (AM)** dari sebuah video TikTok.
+Temukan **tautan preset Alight Motion (AM)** dari sebuah video TikTok.
 
-Preset AM sering "tenggelam":
-- link ditaruh di **deskripsi** tapi tak bisa disalin,
-- atau disembunyikan di **komentar** yang jumlahnya ribuan,
-- atau diarahkan "link di bio" / "cek komentar pin".
+## Untuk apa situs ini?
 
-`am-finder` menerima satu URL video TikTok, lalu memindai **deskripsi**, **bio kreator**, dan **komentar** (yang disematkan diprioritaskan) untuk menemukan dan menilai kandidat link preset.
+Pembuat preset Alight Motion sering menaruh tautan unduhan di tempat yang sulit
+dijangkau:
+
+- **deskripsi** yang tidak bisa disalin,
+- **komentar** yang tenggelam di antara ribuan pesan,
+- atau diarahkan ke **bio** / komentar yang disematkan.
+
+`am-finder` menyelesaikan itu: tempel satu URL video TikTok, dan alat ini
+menyisir **deskripsi**, **bio kreator**, dan **komentar** (yang disematkan dan
+milik kreator diprioritaskan) untuk menemukan serta menilai kandidat tautan preset.
+
+Tautan **`drive.google.com`** dan **`alightcreative.com`** menjadi prioritas
+utama; domain lain tetap ditampilkan sebagai prioritas rendah.
 
 ## Fitur
 
-- 🔎 Ekstraksi link cerdas: mengenali Google Drive, MediaFire, Mega, Dropbox, link pendek, Telegram, dll.
-- 🧠 **Skor kepercayaan** tiap link + alasan penilaiannya.
+- 🎯 **Prioritas** `drive.google.com` / `docs.google.com` dan `alightcreative.com`.
+- 🔎 Ekstraksi tautan cerdas: mengenali domain telanjang (`drive.google.com/...`),
+  merapikan URL `open?id=` ke bentuk kanonik, dan mendeteksi link "disamarkan".
+- 🧠 **Skor kepercayaan** tiap tautan + alasan penilaiannya.
 - 📌 Deteksi **komentar disematkan** dan komentar milik kreator.
-- ⚠️ Deteksi link "tidak langsung" (mis. "link di bio").
-- 🖥️ **Web app** tanpa dependensi + **CLI**.
+- ⚠️ Deteksi tautan "tidak langsung" (mis. "link di bio").
+- 🖥️ **Web app** bergaya editorial + **CLI** — tanpa dependensi.
 - 🧩 Arsitektur **pluggable** — mudah menambah penyedia data TikTok lain.
 
 ## Menjalankan
@@ -93,17 +104,19 @@ URL TikTok
 [server.py / cli.py]  tampilkan ke pengguna
 ```
 
-## Skor link
+## Skor & prioritas
 
-| Sinyal | Poin |
-|---|---|
-| Host penyimpanan file (Drive, MediaFire, Mega, …) | +40 |
-| Referensi langsung Alight Motion (`alightcreative`, `.am`, `.xml`) | +35 |
-| Ekstensi berkas preset (`.xml`, `.am`, `.zip`, …) | +25 |
-| Kata kunci "preset" di sekitar link | +15 |
-| Teks sumber membahas preset | +5 |
-| Link pendek/agregator (bit.ly, linktree, t.me, …) | −5 |
-| Diarahkan ke bio/komentar (tidak langsung) | −10 |
+Hasil diurutkan **berdasarkan tier** dulu, baru skor:
+
+| Tier | Domain | Skor dasar |
+|---|---|---|
+| **Prioritas 1** | `drive.google.com`, `docs.google.com` | 70–90 |
+| **Prioritas 2** | `alightcreative.com` | 75–95 |
+| Lain | MediaFire, Mega, Dropbox, GitHub, link pendek, dll. | 0–45 |
+| Petunjuk | tanpa URL ("link di bio") | 5 |
+
+Contoh: URL Drive ke berkas spesifik dengan konteks "preset" ⇒ **90**;
+tautan berbagi Alight Motion ⇒ **95**; tautan MediaFire ⇒ **45**.
 
 ## Menambah penyedia TikTok
 

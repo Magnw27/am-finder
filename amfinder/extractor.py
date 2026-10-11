@@ -1,16 +1,22 @@
-"""Ekstraksi link preset dari teks TikTok.
+"""Ekstraksi tautan preset dari teks TikTok.
 
 Modul ini adalah "otak" dari am-finder. Ia menerima teks mentah dari
 deskripsi video, komentar, atau bio kreator, lalu mengembalikan daftar
-kandidat link preset Alight Motion beserta skor kepercayaannya.
+kandidat tautan preset Alight Motion.
 
-Tantangan utama: link preset sering disamarkan atau tidak dalam bentuk
-URL utuh, misalnya:
-    - "drive.google.com/file/d/xxxx"
-    - "link di bio ya"
-    - "cek komentar pin"
-    - "me diafire / am.preset.by.xxx"
-    - "kunjungi linktree saya"
+Fokus utama
+-----------
+Preset Alight Motion hampir selalu dibagikan lewat dua domain:
+
+1. ``drive.google.com`` / ``docs.google.com`` — Google Drive (paling umum).
+2. ``alightcreative.com`` — tautan resmi berbagi proyek Alight Motion.
+
+Kedua domain ini diprioritaskan dan diletakkan paling atas pada hasil.
+Tautan lain (MediaFire, Mega, link pendek, dsb.) tetap ditangkap, tetapi
+diberi prioritas jauh lebih rendah.
+
+Tantangan: tautan sering disamarkan atau tidak berupa URL utuh, misalnya
+``drive.google.com/file/d/xxxx``, "link di bio", atau "cek komentar pin".
 """
 
 from __future__ import annotations
@@ -20,77 +26,86 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 # ---------------------------------------------------------------------------
-# Pola & kata kunci
+# Tingkat prioritas (tier)
 # ---------------------------------------------------------------------------
 
-# URL utuh (http/https) maupun domain telanjang yang umum dipakai berbagi file.
-_HOSTS = (
-    r"drive\.google\.com",
-    r"docs\.google\.com",
-    r"dropbox\.com",
+TIER_DRIVE = "drive"        # drive.google.com / docs.google.com
+TIER_ALIGHT = "alight"      # alightcreative.com
+TIER_OTHER = "other"        # domain lain (prioritas rendah)
+TIER_HINT = "hint"          # tanpa URL, hanya petunjuk ("link di bio")
+
+#: Urutan tier dari yang paling diprioritaskan.
+TIER_ORDER = {TIER_DRIVE: 0, TIER_ALIGHT: 1, TIER_OTHER: 2, TIER_HINT: 3}
+
+# ---------------------------------------------------------------------------
+# Pola
+# ---------------------------------------------------------------------------
+
+# Domain yang menjadi fokus.
+_DRIVE_RE = re.compile(
+    r"(?:https?://)?(?:www\.)?(?:drive|docs)\.google\.com"
+    r"(?:/[^\s<>\"'()\[\]]*)?",
+    re.IGNORECASE,
+)
+_ALIGHT_RE = re.compile(
+    r"(?:https?://)?(?:www\.)?alightcreative\.com"
+    r"(?:/[^\s<>\"'()\[\]]*)?",
+    re.IGNORECASE,
+)
+
+# Domain lain yang masih relevan (tapi prioritas rendah).
+_OTHER_HOSTS = (
     r"mediafire\.com",
     r"mega\.nz",
+    r"dropbox\.com",
     r"4shared\.com",
-    r"zippyshare\.com",
+    r"gofile\.io",
+    r"pixeldrain\.com",
+    r"workupload\.com",
     r"1drv\.ms",
     r"disk\.yandex\.[a-z]+",
-    r"mega\.nz",
     r"bit\.ly",
     r"tinyurl\.com",
     r"cutt\.ly",
-    r"shorturl\.at",
     r"s\.id",
     r"linktr\.ee",
     r"linktree\.[a-z.]+",
     r"t\.me",
     r"telegram\.me",
-    r"instagram\.com",
-    r"youtube\.com",
-    r"youtu\.be",
     r"github\.com",
     r"raw\.githubusercontent\.com",
     r"pastebin\.com",
-    r"gofile\.io",
-    r"pixeldrain\.com",
-    r"workupload\.com",
-    r"file\.io",
-    r"krakenfiles\.com",
-    r"anonfiles\.[a-z]+",
-    r"gdrive\.[a-z.]+",
-    r"alightcreative\.com",
 )
-
-_URL_RE = re.compile(
-    r"(?:(?:https?://)|(?:www\.))?"          # skema opsional
-    r"(?:" + "|".join(_HOSTS) + r")"          # host yang dikenal
-    r"(?:/[^\s<>\"'()\[\]]*)?"                # path opsional
-    r"|"
-    r"https?://[^\s<>\"'()\[\]]+",            # URL apa pun yang jelas
+_OTHER_BARE_RE = re.compile(
+    r"(?:(?:https?://)|(?:www\.))?(?:" + "|".join(_OTHER_HOSTS) + r")"
+    r"(?:/[^\s<>\"'()\[\]]*)?",
     re.IGNORECASE,
 )
+_ANY_URL_RE = re.compile(r"https?://[^\s<>\"'()\[\]]+", re.IGNORECASE)
+
+# ID berkas / folder Google Drive.
+_DRIVE_FILE_ID = re.compile(r"(?:/file/d/|[?&]id=)([\w-]{10,})")
+_DRIVE_FOLDER_ID = re.compile(r"/folders/([\w-]{10,})")
 
 # Kata kunci yang menandakan konten terkait preset / proyek Alight Motion.
 _PRESET_KEYWORDS = (
     "preset",
     "alight",
     "alight motion",
-    "am ",
+    "am",
     "project",
     "projek",
     "proyek",
     "xml",
-    ".am",
     "template",
     "motion",
     "edit",
-    "template",
-    "god",
-    "aep",
     "capcut",
     "after effect",
+    "aep",
 )
 
-# Frasa yang menandakan link tidak ada di tempat yang terlihat ("tersembunyi").
+# Frasa yang menandakan tautan tidak tampak langsung ("tersembunyi").
 _INDIRECT_HINTS = (
     "link di bio",
     "link in bio",
@@ -117,17 +132,18 @@ _INDIRECT_HINTS = (
     "komen",
 )
 
-# Ekstensi file yang menandakan proyek/preset.
-_PRESET_EXT = re.compile(r"\.(xml|am|aep|zip|rar|7z|mp4|mov)$", re.IGNORECASE)
+# Ekstensi berkas proyek/preset.
+_PRESET_EXT = re.compile(r"\.(xml|am|aep|zip|rar|7z)$", re.IGNORECASE)
 
 
 @dataclass
 class LinkCandidate:
-    """Satu kandidat link yang ditemukan pada sebuah sumber teks."""
+    """Satu kandidat tautan yang ditemukan pada sebuah sumber teks."""
 
     url: str
     source: str          # "description" | "comment" | "bio" | "pinned_comment"
-    context: str         # teks asli di sekitar link
+    tier: str = TIER_OTHER
+    context: str = ""    # teks asli di sekitar tautan
     score: int = 0
     reasons: list[str] = field(default_factory=list)
     indirect: bool = False
@@ -137,14 +153,39 @@ class LinkCandidate:
         self.reasons.append(reason)
 
 
-def _normalize_url(raw: str) -> str:
-    """Bersihkan URL dari tanda baca di ujung dan tambahkan skema bila kurang."""
+# ---------------------------------------------------------------------------
+# Normalisasi
+# ---------------------------------------------------------------------------
+
+def _clean(raw: str) -> str:
+    """Buang tanda baca di ujung dan tambahkan skema bila belum ada."""
     url = raw.strip().strip(".,;:!?)]}'\"")
     if not url:
         return url
     if not re.match(r"^https?://", url, re.IGNORECASE):
         url = "https://" + url.lstrip("/")
     return url
+
+
+def _normalize_drive(raw: str) -> str:
+    """Ubah berbagai bentuk URL Google Drive jadi bentuk kanonik.
+
+    - ``.../file/d/<id>/view``  -> tetap (dibersihkan)
+    - ``.../open?id=<id>`` / ``.../uc?id=<id>`` -> ``/file/d/<id>/view``
+    - ``.../folders/<id>``      -> tetap folder
+    """
+    url = _clean(raw)
+    folder = _DRIVE_FOLDER_ID.search(url)
+    if folder:
+        return f"https://drive.google.com/drive/folders/{folder.group(1)}"
+    file_id = _DRIVE_FILE_ID.search(url)
+    if file_id:
+        return f"https://drive.google.com/file/d/{file_id.group(1)}/view"
+    return url
+
+
+def _normalize_alight(raw: str) -> str:
+    return _clean(raw)
 
 
 def _has_preset_keyword(text: str) -> bool:
@@ -157,98 +198,143 @@ def _has_indirect_hint(text: str) -> bool:
     return any(hint in low for hint in _INDIRECT_HINTS)
 
 
+# ---------------------------------------------------------------------------
+# Skoring per-tier
+# ---------------------------------------------------------------------------
+
+def _score_drive(cand: LinkCandidate) -> None:
+    cand.add(70, "Google Drive — tempat berbagi preset paling umum")
+    if _DRIVE_FILE_ID.search(cand.url) or _DRIVE_FOLDER_ID.search(cand.url):
+        cand.add(10, "menunjuk berkas/folder spesifik")
+    if _has_preset_keyword(cand.context):
+        cand.add(10, "dikontekstual dengan preset")
+
+
+def _score_alight(cand: LinkCandidate) -> None:
+    cand.add(75, "Tautan resmi Alight Motion (alightcreative.com)")
+    if re.search(r"/(share|project|preset|p|s)/", cand.url, re.IGNORECASE):
+        cand.add(10, "menunjuk proyek/preset spesifik")
+    if _has_preset_keyword(cand.context):
+        cand.add(10, "dikontekstual dengan preset")
+
+
+def _score_other(cand: LinkCandidate) -> None:
+    low_url = cand.url.lower()
+    if re.search(
+        r"mediafire|mega\.nz|dropbox|4shared|gofile|pixeldrain|workupload|1drv|yandex",
+        low_url,
+    ):
+        cand.add(25, "penyimpanan file lain (mungkin preset)")
+    if "github" in low_url or "pastebin" in low_url:
+        cand.add(10, "kemungkinan berisi tautan/berkas preset")
+    if re.search(r"bit\.ly|tinyurl|cutt\.ly|s\.id|linktr\.ee|t\.me|telegram", low_url):
+        cand.add(-5, "link pendek/agregator, isi belum dipastikan")
+    if _PRESET_EXT.search(low_url.split("?")[0]):
+        cand.add(15, "berakhiran ekstensi berkas preset")
+    if _has_preset_keyword(cand.context):
+        cand.add(5, "dikontekstual dengan preset")
+
+
+# ---------------------------------------------------------------------------
+# Ekstraksi
+# ---------------------------------------------------------------------------
+
+def _collect_matches(text: str) -> list[tuple[int, int, str, str, int]]:
+    """Kumpulkan semua kecocokan tautan: (start, end, teks, tier, prioritas)."""
+    found: list[tuple[int, int, str, str, int]] = []
+    for rx, tier, priority in (
+        (_DRIVE_RE, TIER_DRIVE, 0),
+        (_ALIGHT_RE, TIER_ALIGHT, 0),
+        (_OTHER_BARE_RE, TIER_OTHER, 1),
+        (_ANY_URL_RE, TIER_OTHER, 2),
+    ):
+        for m in rx.finditer(text):
+            found.append((m.start(), m.end(), m.group(0), tier, priority))
+    # Utamakan posisi awal, lalu prioritas tier, lalu kecocokan terpanjang.
+    found.sort(key=lambda t: (t[0], t[4], -(t[1] - t[0])))
+    return found
+
+
 def extract_links(text: str, source: str) -> list[LinkCandidate]:
-    """Ambil semua kandidat link dari satu potongan teks.
+    """Ambil semua kandidat tautan dari satu potongan teks.
 
     Args:
-        text: teks mentah (deskripsi komentar, bio, dsb).
+        text: teks mentah (deskripsi, komentar, bio, dsb.).
         source: label sumber, mis. "description", "comment", "bio".
 
     Returns:
-        Daftar :class:`LinkCandidate`.
+        Daftar :class:`LinkCandidate`, sudah bertingkat (tier).
     """
     if not text:
         return []
 
     out: list[LinkCandidate] = []
     seen: set[str] = set()
+    used: list[tuple[int, int]] = []
 
-    for match in _URL_RE.finditer(text):
-        raw = match.group(0)
-        url = _normalize_url(raw)
+    for start, end, raw, tier, _prio in _collect_matches(text):
+        # Lewati kecocokan yang tumpang-tindih dengan yang sudah diambil.
+        if any(s < end and start < e for s, e in used):
+            continue
+
+        if tier == TIER_DRIVE:
+            url = _normalize_drive(raw)
+        elif tier == TIER_ALIGHT:
+            url = _normalize_alight(raw)
+        else:
+            url = _clean(raw)
+
         if not url or url in seen:
             continue
         seen.add(url)
+        used.append((start, end))
 
-        # Ambil sedikit konteks di sekitar link untuk penilaian.
-        start = max(0, match.start() - 60)
-        end = min(len(text), match.end() + 60)
-        context = text[start:end].replace("\n", " ").strip()
+        ctx_start = max(0, start - 70)
+        ctx_end = min(len(text), end + 70)
+        context = text[ctx_start:ctx_end].replace("\n", " ").strip()
 
-        cand = LinkCandidate(url=url, source=source, context=context)
-        _score(cand, text)
+        cand = LinkCandidate(url=url, source=source, tier=tier, context=context)
+        if tier == TIER_DRIVE:
+            _score_drive(cand)
+        elif tier == TIER_ALIGHT:
+            _score_alight(cand)
+        else:
+            _score_other(cand)
         out.append(cand)
 
-    # Deteksi isyarat "tidak langsung" walau tanpa URL (mis. "link di bio").
+    # Petunjuk tanpa URL (mis. "link preset di bio") tetap dicatat.
     if not out and _has_indirect_hint(text) and _has_preset_keyword(text):
-        out.append(
-            LinkCandidate(
-                url="",
-                source=source,
-                context=text.strip()[:200],
-                indirect=True,
-            )
+        hint = LinkCandidate(
+            url="",
+            source=source,
+            tier=TIER_HINT,
+            context=text.strip()[:200],
+            indirect=True,
         )
-        out[-1].add(5, "menyebut preset tapi link tidak langsung terlihat")
+        hint.add(5, "menyebut preset tapi tautan tidak tampak langsung")
+        out.append(hint)
 
     return out
 
 
-def _score(cand: LinkCandidate, full_text: str) -> None:
-    """Beri skor ke sebuah kandidat berdasarkan sinyal-sinyal yang ada."""
-    low_url = cand.url.lower()
-    low_ctx = cand.context.lower()
-
-    # File sharing / preset langsung = paling bernilai.
-    if re.search(
-        r"drive\.google|docs\.google|dropbox|mediafire|mega\.nz|4shared|"
-        r"yandex|gofile|pixeldrain|workupload|1drv|gdrive",
-        low_url,
-    ):
-        cand.add(40, "penyimpanan file (kemungkinan besar isi preset)")
-    if "alightcreative" in low_url or ".am" in low_url or ".xml" in low_url:
-        cand.add(35, "referensi langsung ke Alight Motion")
-    if _PRESET_EXT.search(low_url.split("?")[0]):
-        cand.add(25, "berakhiran ekstensi file preset/proyek")
-    if "github" in low_url or "pastebin" in low_url:
-        cand.add(10, "kemungkinan berisi tautan/berkas preset")
-
-    # Kata kunci preset di sekitar link.
-    if _has_preset_keyword(cand.context):
-        cand.add(15, "ada kata kunci preset di sekitar link")
-    if _has_preset_keyword(full_text):
-        cand.add(5, "teks sumber membahas preset")
-
-    # Link pendek perlu ditelusuri (belum pasti isinya).
-    if re.search(r"bit\.ly|tinyurl|cutt\.ly|shorturl|s\.id|linktr\.ee|t\.me|telegram\.me", low_url):
-        cand.add(-5, "link pendek/agregator, isi belum dipastikan")
-
-    # Sinyal "link disembunyikan".
-    if _has_indirect_hint(cand.context):
-        cand.indirect = True
-        cand.add(-10, "diarahkan ke bio/komentar (link tidak langsung)")
-
-    # Sumber komentar bawahan sedikit lebih rendah daripada deskripsi/pin.
-    if cand.source == "comment":
-        cand.add(0, "dari komentar")
-
-
 def rank(candidates: Iterable[LinkCandidate]) -> list[LinkCandidate]:
-    """Urutkan kandidat dari skor tertinggi, buang duplikat URL."""
+    """Urutkan kandidat: tier prioritas dulu, lalu skor, buang duplikat URL."""
     best: dict[str, LinkCandidate] = {}
     for c in candidates:
-        key = c.url or ("INDIRECT::" + c.source + c.context[:40])
+        key = c.url or ("HINT::" + c.source + c.context[:40])
         prev = best.get(key)
-        if prev is None or c.score > prev.score:
+        if prev is None:
             best[key] = c
-    return sorted(best.values(), key=lambda c: (c.score, not c.indirect), reverse=True)
+            continue
+        # Pilih yang tier-nya lebih diprioritaskan, atau skornya lebih tinggi.
+        if (TIER_ORDER[c.tier], -c.score) < (TIER_ORDER[prev.tier], -prev.score):
+            best[key] = c
+    return sorted(
+        best.values(),
+        key=lambda c: (TIER_ORDER[c.tier], -c.score, c.indirect),
+    )
+
+
+def is_priority_tier(tier: str) -> bool:
+    """True bila tier termasuk yang diprioritaskan (Drive / Alight)."""
+    return tier in (TIER_DRIVE, TIER_ALIGHT)

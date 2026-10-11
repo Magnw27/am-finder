@@ -3,183 +3,511 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>am-finder — cari link preset Alight Motion dari TikTok</title>
+<title>am-finder — pencari tautan preset Alight Motion dari TikTok</title>
+<meta name="description" content="Tempel tautan video TikTok, temukan tautan preset Alight Motion dari deskripsi, komentar, dan bio kreator. Prioritas drive.google.com & alightcreative.com." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141311'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23E23D28' text-anchor='middle'%3EAF%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #0b0d12;
-    --card: #151922;
-    --card2: #1b2130;
-    --border: #262d3d;
-    --text: #e7ebf3;
-    --muted: #8b93a7;
-    --accent: #22d3ee;
-    --accent2: #a78bfa;
-    --good: #34d399;
-    --warn: #fbbf24;
-    --bad: #f87171;
+  :root{
+    --paper:#F1EDE3;
+    --paper-2:#E9E4D7;
+    --ink:#15140F;
+    --ink-soft:#3A382F;
+    --muted:#726D60;
+    --line:#C8C1AE;
+    --line-strong:#15140F;
+    --accent:#DE3C22;
+    --accent-dark:#A82A16;
+    --drive:#1C6B3B;
+    --alight:#B23A00;
+    --warn:#8A6A00;
+    --radius:2px;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
   }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 80px; }
-  header h1 { font-size: 26px; margin: 0 0 4px; }
-  header h1 span { background: linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  header p { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
-  form { display: flex; gap: 10px; flex-wrap: wrap; }
-  input[type=url] {
-    flex: 1 1 380px; min-width: 0; padding: 13px 15px; border-radius: 11px;
-    border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 15px;
+  /* tekstur kertas halus */
+  body::before{
+    content:"";
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    opacity:.5; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   }
-  input[type=url]:focus { outline: none; border-color: var(--accent); }
-  button {
-    padding: 13px 22px; border: 0; border-radius: 11px; cursor: pointer;
-    background: linear-gradient(90deg,var(--accent),var(--accent2)); color: #0b0d12; font-weight: 700; font-size: 15px;
+  .shell{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 28px;}
+
+  a{color:inherit;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 0; border-bottom:1px solid var(--line-strong);
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.04em; text-transform:uppercase;
   }
-  button:disabled { opacity: .6; cursor: wait; }
-  .hint { color: var(--muted); font-size: 13px; margin-top: 10px; }
-  .status { margin-top: 22px; color: var(--muted); }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-top: 18px; }
-  .video { display: flex; gap: 14px; align-items: flex-start; }
-  .video img { width: 84px; border-radius: 10px; flex: none; background: #000; }
-  .video h2 { font-size: 16px; margin: 0 0 6px; }
-  .video .meta { color: var(--muted); font-size: 13px; }
-  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-  .b-desc { background: #164e63; color: #a5f3fc; }
-  .b-bio { background: #4c1d95; color: #ddd6fe; }
-  .b-pin { background: #713f12; color: #fde68a; }
-  .b-cmt { background: #1e293b; color: #cbd5e1; }
-  .link { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-top: 12px; background: var(--card2); }
-  .link .top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-  .link a { color: var(--accent); word-break: break-all; font-weight: 600; text-decoration: none; }
-  .link a:hover { text-decoration: underline; }
-  .score { font-size: 12px; color: var(--muted); white-space: nowrap; }
-  .score b { color: var(--good); }
-  .ctx { color: var(--muted); font-size: 13px; margin-top: 8px; border-left: 2px solid var(--border); padding-left: 10px; }
-  .reasons { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; }
-  .reasons li { background: #0f1422; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
-  .warn { color: var(--warn); font-size: 13px; margin-top: 10px; }
-  .err { color: var(--bad); background: #2a1113; border: 1px solid #7f1d1d; padding: 12px 14px; border-radius: 12px; margin-top: 18px; }
-  details { margin-top: 16px; }
-  summary { cursor: pointer; color: var(--muted); font-size: 14px; }
-  .src { margin-top: 10px; padding: 10px 12px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
-  .src p { margin: 6px 0 0; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
-  .indirect { color: var(--warn); }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:600;}
+  .brand .mark{
+    width:26px; height:26px; display:grid; place-items:center;
+    background:var(--ink); color:var(--accent);
+    font-size:11px; font-weight:700; letter-spacing:0;
+  }
+  .topbar nav{display:flex; gap:22px;}
+  .topbar nav a{text-decoration:none; color:var(--muted); transition:color .15s;}
+  .topbar nav a:hover{color:var(--ink);}
+  .topbar .ver{color:var(--muted);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:74px 0 46px; border-bottom:1px solid var(--line);}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 22px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .eyebrow::after{content:""; height:1px; flex:1; background:var(--line);}
+  h1{
+    font-family:"Fraunces",Georgia,serif; font-weight:900; font-style:normal;
+    font-size:clamp(42px,7.2vw,86px); line-height:.96; letter-spacing:-.02em;
+    margin:0 0 28px; max-width:16ch;
+  }
+  h1 em{font-style:italic; font-weight:400; color:var(--accent);}
+  .lede{max-width:60ch; font-size:18px; color:var(--ink-soft); margin:0;}
+  .lede b{font-weight:600; border-bottom:2px solid var(--accent); padding-bottom:1px;}
+
+  /* ---------- search ---------- */
+  .search{padding:38px 0 10px;}
+  .field{
+    display:flex; align-items:stretch; gap:0;
+    border:1px solid var(--line-strong); background:var(--paper);
+  }
+  .field:focus-within{box-shadow:5px 5px 0 var(--ink); transform:translate(-1px,-1px);}
+  .field .prefix{
+    display:flex; align-items:center; padding:0 16px; border-right:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); white-space:nowrap;
+  }
+  .field input{
+    flex:1; min-width:0; border:0; background:transparent; color:var(--ink);
+    font-family:"IBM Plex Mono",monospace; font-size:15px; padding:18px 16px; outline:none;
+  }
+  .field input::placeholder{color:#9C9686;}
+  .field button{
+    border:0; border-left:1px solid var(--line-strong); cursor:pointer;
+    background:var(--ink); color:var(--paper);
+    font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; padding:0 26px;
+    transition:background .15s;
+  }
+  .field button:hover{background:var(--accent);}
+  .field button:disabled{background:var(--muted); cursor:wait;}
+  .examples{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  }
+  .examples .chip{
+    border:1px solid var(--line); padding:3px 9px; cursor:pointer; background:transparent;
+    font:inherit; color:var(--ink-soft); transition:.15s;
+  }
+  .examples .chip:hover{border-color:var(--ink); background:var(--paper-2);}
+
+  /* ---------- status ---------- */
+  .status{padding:26px 0; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted);}
+  .status .dots span{
+    display:inline-block; width:6px; height:6px; margin-right:5px; background:var(--accent);
+    animation:blink 1s infinite both;
+  }
+  .status .dots span:nth-child(2){animation-delay:.2s;}
+  .status .dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.15;}40%{opacity:1;}}
+
+  /* ---------- results ---------- */
+  #result{padding-bottom:40px;}
+  .section-label{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted); font-weight:600;
+    display:flex; align-items:center; gap:14px; margin:34px 0 18px;
+  }
+  .section-label::after{content:""; flex:1; height:1px; background:var(--line);}
+  .section-label .count{color:var(--accent);}
+
+  .videocard{border:1px solid var(--line-strong); padding:0; margin-top:34px; background:var(--paper);}
+  .videocard .bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; border-bottom:1px solid var(--line);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  }
+  .videocard .bar b{color:var(--ink);}
+  .videocard .body{display:flex; gap:20px; padding:20px 16px; align-items:flex-start;}
+  .videocard img{width:96px; height:128px; object-fit:cover; border:1px solid var(--line); flex:none; background:#000;}
+  .videocard h2{
+    font-family:"Fraunces",Georgia,serif; font-size:22px; line-height:1.25; font-weight:600;
+    margin:0 0 10px; max-width:52ch;
+  }
+  .meta{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 14px;}
+  .meta b{color:var(--ink-soft); font-weight:600;}
+  .bio{margin-top:12px; font-size:14px; color:var(--ink-soft); border-left:2px solid var(--accent); padding-left:12px;}
+
+  .link{
+    border:1px solid var(--line); border-left:4px solid var(--line);
+    padding:18px 20px; margin-bottom:12px; background:var(--paper);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .link:hover{transform:translate(-2px,-2px); box-shadow:4px 4px 0 var(--ink);}
+  .link.pri{border-left-color:var(--accent);}
+  .link.t-drive{border-left-color:var(--drive);}
+  .link.t-alight{border-left-color:var(--alight);}
+  .link .row1{display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;}
+  .link .idx{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); font-weight:600;}
+  .tag{
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    padding:3px 8px; border:1px solid var(--ink); font-weight:600;
+  }
+  .tag.drive{background:var(--drive); color:#fff; border-color:var(--drive);}
+  .tag.alight{background:var(--alight); color:#fff; border-color:var(--alight);}
+  .tag.other{background:transparent; color:var(--muted); border-color:var(--line);}
+  .tag.hint{background:transparent; color:var(--warn); border-color:var(--warn);}
+  .tag.src{background:var(--paper-2); border-color:var(--line); color:var(--ink-soft);}
+  .link .score{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);}
+  .link .score b{color:var(--ink);}
+  .link .url{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:500; word-break:break-all; display:flex; gap:10px; align-items:baseline;}
+  .link .url a{text-decoration:none; border-bottom:1px solid var(--accent); color:var(--ink); transition:.15s;}
+  .link .url a:hover{background:var(--accent); color:#fff;}
+  .copy{
+    border:1px solid var(--line); background:transparent; cursor:pointer;
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    padding:2px 7px; color:var(--muted); flex:none; transition:.15s;
+  }
+  .copy:hover{border-color:var(--ink); color:var(--ink);}
+  .copy.done{background:var(--drive); border-color:var(--drive); color:#fff;}
+  .link .ctx{margin:12px 0 0; font-size:14px; color:var(--ink-soft); border-left:1px solid var(--line); padding-left:12px;}
+  .link .ctx em{color:var(--muted);}
+  .reasons{list-style:none; padding:0; margin:12px 0 0; display:flex; flex-wrap:wrap; gap:6px;}
+  .reasons li{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); background:var(--paper-2); border:1px solid var(--line); padding:2px 8px;}
+
+  .notice{border:1px solid var(--line); border-left:4px solid var(--accent); padding:16px 20px; margin-top:18px; font-size:14px; color:var(--ink-soft);}
+  .notice.warn{border-left-color:var(--warn);}
+  .error{border:1px solid var(--accent); background:#FBEAE6; padding:18px 20px; margin-top:30px;}
+  .error b{font-family:"IBM Plex Mono",monospace; text-transform:uppercase; font-size:12px; letter-spacing:.1em; color:var(--accent-dark);}
+  .error p{margin:8px 0 0; font-size:14px; color:var(--ink-soft);}
+
+  .empty{border:1px dashed var(--line); padding:34px 20px; text-align:center; color:var(--muted); font-family:"IBM Plex Mono",monospace; font-size:13px;}
+
+  /* ---------- explainer ---------- */
+  .about{border-top:1px solid var(--line-strong); margin-top:40px; padding:56px 0 10px;}
+  .about h3{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:30px; margin:0 0 8px;}
+  .about .sub{color:var(--muted); max-width:62ch; margin:0 0 40px; font-size:15px;}
+  .cols{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1px solid var(--line);}
+  .col{padding:26px 24px 30px 0; border-right:1px solid var(--line);}
+  .col:last-child{border-right:0; padding-right:0;}
+  .col .no{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--accent); font-weight:600;}
+  .col h4{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:19px; margin:10px 0 8px;}
+  .col p{font-size:14px; color:var(--ink-soft); margin:0;}
+  .prio-strip{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:40px; border:1px solid var(--line-strong);}
+  .prio{padding:24px; }
+  .prio:first-child{border-right:1px solid var(--line-strong);}
+  .prio .k{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:600;}
+  .prio .k.drive{color:var(--drive);}
+  .prio .k.alight{color:var(--alight);}
+  .prio .v{font-family:"IBM Plex Mono",monospace; font-size:15px; margin-top:8px; word-break:break-all;}
+  .prio p{margin:8px 0 0; font-size:14px; color:var(--ink-soft);}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line-strong); margin-top:56px; padding:28px 0 60px;
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+    display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+  footer a{text-decoration:none; border-bottom:1px solid var(--line);}
+  footer a:hover{border-color:var(--accent); color:var(--ink);}
+
+  details.srcbox{margin-top:18px;}
+  details.srcbox summary{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); cursor:pointer; list-style:none;}
+  details.srcbox summary::-webkit-details-marker{display:none;}
+  details.srcbox summary::before{content:"▸ "; color:var(--accent);}
+  details.srcbox[open] summary::before{content:"▾ ";}
+  .src{margin-top:12px; border:1px solid var(--line); padding:14px 16px; background:var(--paper-2);}
+  .src .h{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
+  .src p{margin:0; font-size:14px; color:var(--ink-soft); white-space:pre-wrap; word-break:break-word;}
+
+  @media (max-width:760px){
+    .shell{padding:0 18px;}
+    .topbar nav{display:none;}
+    .cols{grid-template-columns:1fr;}
+    .col{border-right:0; border-bottom:1px solid var(--line); padding:22px 0;}
+    .col:last-child{border-bottom:0;}
+    .prio-strip{grid-template-columns:1fr;}
+    .prio:first-child{border-right:0; border-bottom:1px solid var(--line-strong);}
+    .field{flex-wrap:wrap;}
+    .field .prefix{border-right:0; border-bottom:1px solid var(--line); width:100%; padding:10px 16px;}
+    .field input{flex:1 1 60%;}
+    .field button{padding:0 18px;}
+    .videocard .body{flex-direction:column;}
+    .videocard img{width:120px; height:160px;}
+    .about h3{font-size:24px;}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>am-<span>finder</span></h1>
-    <p>Tempel URL video TikTok → temukan link preset Alight Motion dari deskripsi, komentar (termasuk yang disematkan), dan bio kreator.</p>
+<div class="shell">
+
+  <div class="topbar">
+    <div class="brand"><span class="mark">AF</span> am-finder</div>
+    <nav>
+      <a href="#cari">Cari</a>
+      <a href="#cara">Cara kerja</a>
+      <a href="#prioritas">Prioritas</a>
+    </nav>
+    <span class="ver" id="ver">v0.2.0</span>
+  </div>
+
+  <header class="hero" id="cari">
+    <p class="eyebrow">Alight Motion · Pencari Tautan Preset</p>
+    <h1>Preset-nya ada di balik <em>ribuan komentar.</em></h1>
+    <p class="lede">
+      Tempel tautan video TikTok, dan <b>am-finder</b> akan menyisir deskripsi,
+      komentar (termasuk yang disematkan), serta bio kreator untuk menemukan
+      tautan preset Alight Motion — lalu menyusunnya berdasarkan tingkat
+      kepercayaan.
+    </p>
   </header>
 
-  <form id="form">
-    <input id="url" type="url" placeholder="https://www.tiktok.com/@user/video/123..." required autocomplete="off" />
-    <button id="btn" type="submit">Cari</button>
+  <!-- SEARCH -->
+  <form class="search" id="form">
+    <div class="field">
+      <span class="prefix">tiktok.com/</span>
+      <input id="url" type="text" inputmode="url" autocomplete="off" spellcheck="false"
+             placeholder="@user/video/123…  atau  vt.tiktok.com/ZS…" required />
+      <button id="btn" type="submit">Cari →</button>
+    </div>
   </form>
-  <div class="hint">Bisa juga link pendek: vt.tiktok.com atau vm.tiktok.com</div>
+  <div class="examples">
+    <span>Contoh:</span>
+    <button type="button" class="chip" data-ex="https://www.tiktok.com/@user/video/7300000000000000000">URL video penuh</button>
+    <button type="button" class="chip" data-ex="https://vt.tiktok.com/ZSxxxxxx/">tautan pendek vt.tiktok.com</button>
+  </div>
 
   <div id="status" class="status"></div>
   <div id="result"></div>
+
+  <!-- EXPLAINER -->
+  <section class="about" id="cara">
+    <h3>Untuk apa situs ini?</h3>
+    <p class="sub">
+      Pembuat preset Alight Motion sering menaruh tautan unduhan di tempat yang
+      sulit dijangkau: deskripsi yang tidak bisa disalin, komentar yang tenggelam
+      di antara ribuan pesan, atau diarahkan ke bio. am-finder mengumpulkan
+      semuanya dalam sekali tempel.
+    </p>
+    <div class="cols">
+      <div class="col">
+        <span class="no">01</span>
+        <h4>Tempel tautan</h4>
+        <p>Masukkan URL video TikTok — bentuk penuh atau tautan pendek. Tidak perlu masuk atau menyetujui apa pun.</p>
+      </div>
+      <div class="col">
+        <span class="no">02</span>
+        <h4>Tepi dipindai</h4>
+        <p>Deskripsi, bio kreator, dan komentar dibaca. Komentar yang disematkan dan milik kreator diprioritaskan.</p>
+      </div>
+      <div class="col">
+        <span class="no">03</span>
+        <h4>Tautan disusun</h4>
+        <p>Setiap tautan diberi tingkat kepercayaan beserta alasannya, jadi Anda tahu mana yang layak dibuka lebih dulu.</p>
+      </div>
+    </div>
+
+    <div id="prioritas" style="margin-top:44px">
+      <p class="eyebrow" style="margin-bottom:16px">Yang diprioritaskan</p>
+      <div class="prio-strip">
+        <div class="prio">
+          <span class="k drive">Prioritas 1</span>
+          <div class="v">drive.google.com · docs.google.com</div>
+          <p>Tempat berbagi preset paling umum. URL bentuk <span style="font-family:'IBM Plex Mono',monospace">open?id=</span> otomatis dirapikan ke bentuk kanonik, begitu pula folder.</p>
+        </div>
+        <div class="prio">
+          <span class="k alight">Prioritas 2</span>
+          <div class="v">alightcreative.com</div>
+          <p>Tautan resmi berbagi proyek Alight Motion. Domain lain seperti MediaFire, Mega, atau link pendek tetap ditampilkan sebagai prioritas rendah.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>am-finder · pengambil data pihak ketiga, tanpa afiliasi dengan TikTok atau Alight Creative.</span>
+    <span>Dibuat untuk komunitas editor · <a href="#cari">coba sekarang</a></span>
+  </footer>
+
 </div>
 
 <script>
-const form = document.getElementById('form');
-const input = document.getElementById('url');
-const btn = document.getElementById('btn');
-const statusEl = document.getElementById('status');
-const resultEl = document.getElementById('result');
+(function () {
+  "use strict";
 
-const badgeFor = (src) => {
-  switch (src) {
-    case 'description': return '<span class="badge b-desc">Deskripsi</span>';
-    case 'bio': return '<span class="badge b-bio">Bio kreator</span>';
-    case 'pinned_comment': return '<span class="badge b-pin">Komentar disematkan</span>';
-    default: return '<span class="badge b-cmt">Komentar</span>';
+  var form = document.getElementById("form");
+  var input = document.getElementById("url");
+  var btn = document.getElementById("btn");
+  var statusEl = document.getElementById("status");
+  var resultEl = document.getElementById("result");
+
+  var TIER_LABEL = { drive: "Google Drive", alight: "Alight Motion" };
+
+  function esc(s) {
+    return (s == null ? "" : String(s)).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
   }
-};
 
-const esc = (s) => (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function tierTag(link) {
+    if (link.tier === "drive") return '<span class="tag drive">Drive</span>';
+    if (link.tier === "alight") return '<span class="tag alight">Alight Motion</span>';
+    if (link.tier === "hint") return '<span class="tag hint">Petunjuk</span>';
+    return '<span class="tag other">Lain</span>';
+  }
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const url = input.value.trim();
-  if (!url) return;
+  function sourceTag(src) {
+    var map = { description: "Deskripsi", bio: "Bio", pinned_comment: "Disematkan", comment: "Komentar" };
+    return '<span class="tag src">' + (map[src] || src) + "</span>";
+  }
 
-  btn.disabled = true;
-  resultEl.innerHTML = '';
-  statusEl.innerHTML = '<span class="spinner"></span> Mengambil deskripsi, komentar, dan bio dari TikTok…';
+  function linkCard(link, n) {
+    var cls = "link" + (link.priority ? " pri" : "") + " t-" + (link.tier || "other");
+    var h = '<div class="' + cls + '">';
+    h += '<div class="row1">';
+    h += '<span class="idx">' + String(n).padStart(2, "0") + "</span>";
+    h += tierTag(link);
+    h += sourceTag(link.source);
+    h += '<span class="score">skor <b>' + link.score + "</b></span>";
+    h += "</div>";
 
-  try {
-    const res = await fetch('/api/find?url=' + encodeURIComponent(url));
-    const data = await res.json();
-    if (!res.ok) {
-      statusEl.innerHTML = '';
-      resultEl.innerHTML = `<div class="err"><b>Gagal:</b> ${esc(data.error || 'Kesalahan tidak diketahui')}${data.detail ? '<br><span style="opacity:.8">' + esc(data.detail) + '</span>' : ''}</div>`;
-      return;
+    if (link.url) {
+      h += '<div class="url"><a href="' + esc(link.url) + '" target="_blank" rel="noopener noreferrer">' + esc(link.url) + "</a>";
+      h += '<button class="copy" type="button" data-copy="' + esc(link.url) + '">salin</button></div>';
+    } else {
+      h += '<div class="url" style="color:var(--warn)">Tautan tidak tampak langsung — lihat konteks.</div>';
     }
-    render(data);
-    statusEl.innerHTML = '';
-  } catch (err) {
-    statusEl.innerHTML = '';
-    resultEl.innerHTML = `<div class="err">Gagal menghubungi server: ${esc(String(err))}</div>`;
-  } finally {
-    btn.disabled = false;
-  }
-});
 
-function render(data) {
-  const v = data.video;
-  const links = data.links || [];
-  let html = '';
-
-  html += `<div class="card"><div class="video">`;
-  if (v.cover) html += `<img src="${esc(v.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
-  html += `<div>
-     <h2>${esc(v.title || '(tanpa deskripsi)')}</h2>
-     <div class="meta">@${esc(v.author || '?')} · ${data.comments_scanned} komentar dipindai · ${data.pinned_comments} disematkan · ${data.elapsed_ms} ms · via ${esc(data.provider)}</div>
-     ${v.author_signature ? `<div class="meta" style="margin-top:6px">Bio: ${esc(v.author_signature)}</div>` : ''}
-   </div></div></div>`;
-
-  if (links.length) {
-    html += `<div class="card"><h3 style="margin:0 0 4px">🔗 ${links.length} link ditemukan</h3>`;
-    for (const l of links) {
-      html += `<div class="link"><div class="top">`;
-      if (l.url) {
-        html += `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.url)}</a>`;
-      } else {
-        html += `<span class="indirect">⚠ Link tidak langsung (lihat konteks)</span>`;
-      }
-      html += `<span class="score">skor <b>${l.score}</b> · ${badgeFor(l.source)}</span></div>`;
-      if (l.context) html += `<div class="ctx">…${esc(l.context)}…</div>`;
-      if (l.reasons && l.reasons.length) {
-        html += `<ul class="reasons">${l.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>`;
-      }
-      html += `</div>`;
+    if (link.context) h += '<p class="ctx">' + esc(link.context) + "</p>";
+    if (link.reasons && link.reasons.length) {
+      h += '<ul class="reasons">' + link.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>";
     }
-    html += `</div>`;
-  } else {
-    html += `<div class="card"><b>Tidak ada link jelas yang ditemukan.</b><div class="hint">Coba cek bio kreator atau tonton videonya — kadang link ditulis di dalam video.</div></div>`;
+    h += "</div>";
+    return h;
   }
 
-  if (data.warnings && data.warnings.length) {
-    html += `<div class="card">${data.warnings.map(w => `<div class="warn">⚠ ${esc(w)}</div>`).join('')}</div>`;
-  }
+  function render(data) {
+    var v = data.video || {};
+    var links = data.links || [];
+    var priority = links.filter(function (l) { return l.priority; });
+    var others = links.filter(function (l) { return !l.priority; });
+    var html = "";
 
-  if (data.sources && data.sources.length) {
-    html += `<details><summary>Tampilkan ${data.sources.length} sumber teks yang dipindai</summary>`;
-    for (const s of data.sources) {
-      html += `<div class="src">${badgeFor(s.source)} <p>${esc(s.text)}</p></div>`;
+    // video card
+    html += '<div class="videocard"><div class="bar">';
+    html += "<span>Video · <b>@" + esc(v.author || "?") + "</b></span>";
+    html += "<span>" + (data.comments_scanned || 0) + " komentar dipindai · " + (data.pinned_comments || 0) + " disematkan · " + (data.elapsed_ms || 0) + " ms</span>";
+    html += "</div><div class=\"body\">";
+    if (v.cover) html += '<img src="' + esc(v.cover) + '" alt="" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'" />';
+    html += "<div>";
+    html += "<h2>" + esc(v.title || "(tanpa deskripsi)") + "</h2>";
+    html += '<div class="meta">';
+    if (v.duration) html += "<span>durasi <b>" + v.duration + "s</b></span>";
+    if (v.comment_count) html += "<span>total komentar <b>" + v.comment_count + "</b></span>";
+    html += "<span>sumber data <b>" + esc(data.provider || "-") + "</b></span>";
+    html += "</div>";
+    if (v.author_signature) html += '<p class="bio">Bio: ' + esc(v.author_signature) + "</p>";
+    html += "</div></div></div>";
+
+    // priority links
+    if (priority.length) {
+      html += '<div class="section-label">Tautan prioritas <span class="count">' + priority.length + "</span></div>";
+      priority.forEach(function (l, i) { html += linkCard(l, i + 1); });
     }
-    html += `</details>`;
+
+    // others
+    if (others.length) {
+      html += '<div class="section-label">Tautan lain <span class="count">' + others.length + "</span></div>";
+      others.forEach(function (l, i) { html += linkCard(l, i + 1); });
+    }
+
+    if (!links.length) {
+      html += '<div class="section-label">Hasil</div>';
+      html += '<div class="empty">Tidak ada tautan ditemukan pada deskripsi, komentar, maupun bio.<br/>Tautan mungkin tertulis di dalam video.</div>';
+    }
+
+    // warnings
+    if (data.warnings && data.warnings.length) {
+      data.warnings.forEach(function (w) { html += '<div class="notice warn">' + esc(w) + "</div>"; });
+    }
+
+    // sources
+    if (data.sources && data.sources.length) {
+      html += '<details class="srcbox"><summary>Tampilkan ' + data.sources.length + " sumber teks yang dipindai</summary>";
+      data.sources.forEach(function (s) {
+        html += '<div class="src"><div class="h">' + sourceTag(s.source) + '<span class="tag src">' + esc(s.label || "") + "</span></div><p>" + esc(s.text) + "</p></div>";
+      });
+      html += "</details>";
+    }
+
+    resultEl.innerHTML = html;
+
+    // copy buttons
+    Array.prototype.forEach.call(resultEl.querySelectorAll(".copy"), function (b) {
+      b.addEventListener("click", function () {
+        var text = b.getAttribute("data-copy");
+        navigator.clipboard.writeText(text).then(function () {
+          var old = b.textContent;
+          b.textContent = "tersalin";
+          b.classList.add("done");
+          setTimeout(function () { b.textContent = old; b.classList.remove("done"); }, 1400);
+        });
+      });
+    });
   }
 
-  resultEl.innerHTML = html;
-}
+  function showLoading() {
+    statusEl.innerHTML = '<span class="dots"><span></span><span></span><span></span></span> Membedah deskripsi, komentar, dan bio…';
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var url = (input.value || "").trim();
+    if (!url) return;
+    // izinkan input tanpa skema
+    var target = /^https?:\/\//i.test(url) ? url : "https://" + url.replace(/^\/+/, "");
+
+    btn.disabled = true;
+    resultEl.innerHTML = "";
+    showLoading();
+
+    fetch("/api/find?url=" + encodeURIComponent(target))
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+      .then(function (r) {
+        statusEl.innerHTML = "";
+        if (!r.ok) {
+          resultEl.innerHTML = '<div class="error"><b>Gagal</b><p>' + esc(r.data.error || "Kesalahan tidak diketahui") +
+            (r.data.detail ? "<br/>" + esc(r.data.detail) : "") + "</p></div>";
+          return;
+        }
+        render(r.data);
+      })
+      .catch(function (err) {
+        statusEl.innerHTML = "";
+        resultEl.innerHTML = '<div class="error"><b>Kesalahan jaringan</b><p>' + esc(String(err)) + "</p></div>";
+      })
+      .then(function () { btn.disabled = false; });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) {
+    c.addEventListener("click", function () { input.value = c.getAttribute("data-ex"); input.focus(); });
+  });
+})();
 </script>
 </body>
 </html>
