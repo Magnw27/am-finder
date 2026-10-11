@@ -23,13 +23,15 @@ utama; domain lain tetap ditampilkan sebagai prioritas rendah.
 - 🎯 **Hanya menampilkan dua jenis tautan**: **XML** (`drive.google.com` /
   `docs.google.com`) dan **Alight Motion** (`alightcreative.com`). Domain lain
   (MediaFire, Mega, link pendek, dll.) sengaja **tidak ditampilkan**.
-- 🎬 **Pratinjau video TikTok** di halaman hasil, untuk memverifikasi URL benar.
+- 🎬 **Pratinjau video TikTok** *tap-to-play* — andal di mobile (poster dulu,
+  ketuk untuk memutar), dengan fallback tautan bila embed diblokir.
 - 🔎 Ekstraksi tautan cerdas: mengenali domain telanjang (`drive.google.com/...`),
   merapikan URL `open?id=` ke bentuk kanonik, dan mendeteksi link "disamarkan".
 - 🧠 **Skor kepercayaan** tiap tautan + alasan penilaiannya.
 - 📌 Deteksi **komentar disematkan** dan komentar milik kreator.
 - ⚠️ Deteksi tautan "tidak langsung" (mis. "link di bio").
-- 💎 **UI glassmorphism** biru-putih, dioptimalkan untuk mobile & desktop.
+- 💎 **UI glassmorphism** biru-putih, dioptimalkan penuh untuk **mobile & desktop**
+  (target sentuh ≥44px, safe-area iOS, tata letak adaptif).
 - 🖥️ **Web app** + **CLI** — tanpa dependensi.
 - 🧩 Arsitektur **pluggable** — mudah menambah penyedia data TikTok lain.
 
