@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>am-finder — cari link preset Alight Motion dari TikTok</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --card: #151922;
+    --card2: #1b2130;
+    --border: #262d3d;
+    --text: #e7ebf3;
+    --muted: #8b93a7;
+    --accent: #22d3ee;
+    --accent2: #a78bfa;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 80px; }
+  header h1 { font-size: 26px; margin: 0 0 4px; }
+  header h1 span { background: linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header p { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
+  form { display: flex; gap: 10px; flex-wrap: wrap; }
+  input[type=url] {
+    flex: 1 1 380px; min-width: 0; padding: 13px 15px; border-radius: 11px;
+    border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 15px;
+  }
+  input[type=url]:focus { outline: none; border-color: var(--accent); }
+  button {
+    padding: 13px 22px; border: 0; border-radius: 11px; cursor: pointer;
+    background: linear-gradient(90deg,var(--accent),var(--accent2)); color: #0b0d12; font-weight: 700; font-size: 15px;
+  }
+  button:disabled { opacity: .6; cursor: wait; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .status { margin-top: 22px; color: var(--muted); }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-top: 18px; }
+  .video { display: flex; gap: 14px; align-items: flex-start; }
+  .video img { width: 84px; border-radius: 10px; flex: none; background: #000; }
+  .video h2 { font-size: 16px; margin: 0 0 6px; }
+  .video .meta { color: var(--muted); font-size: 13px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .b-desc { background: #164e63; color: #a5f3fc; }
+  .b-bio { background: #4c1d95; color: #ddd6fe; }
+  .b-pin { background: #713f12; color: #fde68a; }
+  .b-cmt { background: #1e293b; color: #cbd5e1; }
+  .link { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; margin-top: 12px; background: var(--card2); }
+  .link .top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .link a { color: var(--accent); word-break: break-all; font-weight: 600; text-decoration: none; }
+  .link a:hover { text-decoration: underline; }
+  .score { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .score b { color: var(--good); }
+  .ctx { color: var(--muted); font-size: 13px; margin-top: 8px; border-left: 2px solid var(--border); padding-left: 10px; }
+  .reasons { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; }
+  .reasons li { background: #0f1422; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; }
+  .warn { color: var(--warn); font-size: 13px; margin-top: 10px; }
+  .err { color: var(--bad); background: #2a1113; border: 1px solid #7f1d1d; padding: 12px 14px; border-radius: 12px; margin-top: 18px; }
+  details { margin-top: 16px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+  .src { margin-top: 10px; padding: 10px 12px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
+  .src p { margin: 6px 0 0; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+  .indirect { color: var(--warn); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>am-<span>finder</span></h1>
+    <p>Tempel URL video TikTok → temukan link preset Alight Motion dari deskripsi, komentar (termasuk yang disematkan), dan bio kreator.</p>
+  </header>
+
+  <form id="form">
+    <input id="url" type="url" placeholder="https://www.tiktok.com/@user/video/123..." required autocomplete="off" />
+    <button id="btn" type="submit">Cari</button>
+  </form>
+  <div class="hint">Bisa juga link pendek: vt.tiktok.com atau vm.tiktok.com</div>
+
+  <div id="status" class="status"></div>
+  <div id="result"></div>
+</div>
+
+<script>
+const form = document.getElementById('form');
+const input = document.getElementById('url');
+const btn = document.getElementById('btn');
+const statusEl = document.getElementById('status');
+const resultEl = document.getElementById('result');
+
+const badgeFor = (src) => {
+  switch (src) {
+    case 'description': return '<span class="badge b-desc">Deskripsi</span>';
+    case 'bio': return '<span class="badge b-bio">Bio kreator</span>';
+    case 'pinned_comment': return '<span class="badge b-pin">Komentar disematkan</span>';
+    default: return '<span class="badge b-cmt">Komentar</span>';
+  }
+};
+
+const esc = (s) => (s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const url = input.value.trim();
+  if (!url) return;
+
+  btn.disabled = true;
+  resultEl.innerHTML = '';
+  statusEl.innerHTML = '<span class="spinner"></span> Mengambil deskripsi, komentar, dan bio dari TikTok…';
+
+  try {
+    const res = await fetch('/api/find?url=' + encodeURIComponent(url));
+    const data = await res.json();
+    if (!res.ok) {
+      statusEl.innerHTML = '';
+      resultEl.innerHTML = `<div class="err"><b>Gagal:</b> ${esc(data.error || 'Kesalahan tidak diketahui')}${data.detail ? '<br><span style="opacity:.8">' + esc(data.detail) + '</span>' : ''}</div>`;
+      return;
+    }
+    render(data);
+    statusEl.innerHTML = '';
+  } catch (err) {
+    statusEl.innerHTML = '';
+    resultEl.innerHTML = `<div class="err">Gagal menghubungi server: ${esc(String(err))}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function render(data) {
+  const v = data.video;
+  const links = data.links || [];
+  let html = '';
+
+  html += `<div class="card"><div class="video">`;
+  if (v.cover) html += `<img src="${esc(v.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">`;
+  html += `<div>
+     <h2>${esc(v.title || '(tanpa deskripsi)')}</h2>
+     <div class="meta">@${esc(v.author || '?')} · ${data.comments_scanned} komentar dipindai · ${data.pinned_comments} disematkan · ${data.elapsed_ms} ms · via ${esc(data.provider)}</div>
+     ${v.author_signature ? `<div class="meta" style="margin-top:6px">Bio: ${esc(v.author_signature)}</div>` : ''}
+   </div></div></div>`;
+
+  if (links.length) {
+    html += `<div class="card"><h3 style="margin:0 0 4px">🔗 ${links.length} link ditemukan</h3>`;
+    for (const l of links) {
+      html += `<div class="link"><div class="top">`;
+      if (l.url) {
+        html += `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.url)}</a>`;
+      } else {
+        html += `<span class="indirect">⚠ Link tidak langsung (lihat konteks)</span>`;
+      }
+      html += `<span class="score">skor <b>${l.score}</b> · ${badgeFor(l.source)}</span></div>`;
+      if (l.context) html += `<div class="ctx">…${esc(l.context)}…</div>`;
+      if (l.reasons && l.reasons.length) {
+        html += `<ul class="reasons">${l.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<div class="card"><b>Tidak ada link jelas yang ditemukan.</b><div class="hint">Coba cek bio kreator atau tonton videonya — kadang link ditulis di dalam video.</div></div>`;
+  }
+
+  if (data.warnings && data.warnings.length) {
+    html += `<div class="card">${data.warnings.map(w => `<div class="warn">⚠ ${esc(w)}</div>`).join('')}</div>`;
+  }
+
+  if (data.sources && data.sources.length) {
+    html += `<details><summary>Tampilkan ${data.sources.length} sumber teks yang dipindai</summary>`;
+    for (const s of data.sources) {
+      html += `<div class="src">${badgeFor(s.source)} <p>${esc(s.text)}</p></div>`;
+    }
+    html += `</details>`;
+  }
+
+  resultEl.innerHTML = html;
+}
+</script>
+</body>
+</html>
