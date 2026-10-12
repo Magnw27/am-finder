@@ -40,21 +40,18 @@
     color:var(--ink);
     font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     font-size:16px; line-height:1.55;
-    background:
-      radial-gradient(1100px 620px at 12% -10%, #ffffff 0%, rgba(255,255,255,0) 60%),
-      linear-gradient(165deg,#f2f8ff 0%,#e2eefc 35%,#d3e6fb 65%,#eaf3ff 100%);
-    background-attachment:fixed;
+    background:linear-gradient(160deg,#f2f8ff 0%,#e2eefc 35%,#d3e6fb 65%,#eaf3ff 100%);
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
     overscroll-behavior-y:none;
   }
-  /* orbs latar (ringan, nonaktif di mobile utk performa) */
+  /* orbs latar — DIHILANGKAN di mobile untuk performa (tanpa blur animasi) */
   .orbs{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
-  .orb{position:absolute; border-radius:50%; filter:blur(70px); opacity:.5; animation:float 20s ease-in-out infinite; will-change:transform;}
-  .orb.a{width:480px;height:480px; left:-150px; top:-130px; background:radial-gradient(circle,#7cc3ff,#2563eb);}
-  .orb.b{width:420px;height:420px; right:-130px; top:6%; background:radial-gradient(circle,#a5d8ff,#38bdf8); animation-delay:-6s;}
-  .orb.c{width:560px;height:560px; left:30%; bottom:-260px; background:radial-gradient(circle,#8fb8ff,#1d4ed8); animation-delay:-11s; opacity:.36;}
-  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(28px,-38px) scale(1.05);}66%{transform:translate(-22px,24px) scale(.96);}}
+  .orb{position:absolute; border-radius:50%; opacity:.32; animation:none; will-change:auto;}
+  .orb.a{width:260px;height:260px; left:-80px; top:-80px; background:radial-gradient(circle,#cfe6ff,#2563eb);}
+  .orb.b{width:220px;height:220px; right:-70px; top:8%; background:radial-gradient(circle,#cfe6ff,#38bdf8);}
+  .orb.c{display:none;}
+  @media (prefers-reduced-motion:reduce){ .orb{animation:none;} }
 
   .shell{
     position:relative; z-index:1; max-width:1120px; margin:0 auto;
@@ -381,15 +378,41 @@
     .brand .txt{font-size:16.5px;}
     .frame .play{width:58px;height:58px;}
   }
+
+  /* ---- PENGGANTIAN TEMA: flat, ringan, non-blur ---- */
+  /* backdrop-filter memaksa GPU menggambar blur ke buffer terpisah — mahal di HP.
+     Ganti dengan lapisan putih semi-transparan solid + bayangan lembut, hasil sama
+     (sedikit "frosted") tapi jauh lebih lancar. */
+  .glass{
+    background:rgba(255,255,255,.86)!important;
+    border:1px solid rgba(235,245,255,.9)!important;
+    box-shadow:0 10px 30px -18px rgba(11,42,91,.14)!important;
+    border-image:none!important;
+  }
+  .topbar,.field,.chip,.tabs,.scan-kind,
+  .pill,.btn-open,.linkcard,.srcitem,
+  .ctx,.reasons li,.frame .play{
+    background:rgba(255,255,255,.9)!important;
+    backdrop-filter:none!important; -webkit-backdrop-filter:none!important;
+  }
+  .scancard .thumb .playmini{
+    background:rgba(255,255,255,.24)!important;
+    backdrop-filter:none!important; -webkit-backdrop-filter:none!important;
+  }
+  .ver{
+    background:rgba(255,255,255,.7)!important;
+    border:1px solid rgba(235,245,255,.9)!important;
+    backdrop-filter:none!important; -webkit-backdrop-filter:none!important;
+  }
+  .field input{background:transparent!important;}
+  .frame{box-shadow:0 16px 36px -16px rgba(11,42,91,.2)!important;}
+
   @media (prefers-reduced-motion:reduce){
     .orb{animation:none;} html{scroll-behavior:auto;} .pulse{animation:none;}
   }
 </style>
 </head>
 <body>
-<div class="orbs" aria-hidden="true">
-  <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span>
-</div>
 
 <div class="shell">
   <div class="topbar glass">
