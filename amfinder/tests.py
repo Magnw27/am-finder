@@ -17,7 +17,7 @@ from .extractor import (
     extract_links,
     rank,
 )
-from .tiktok import extract_video_id, normalize_tiktok_url
+from .tiktok import extract_video_id, normalize_tiktok_url, _clean_query
 
 
 class TestDriveExtraction(unittest.TestCase):
@@ -130,6 +130,116 @@ class TestUrlNormalize(unittest.TestCase):
     def test_extract_video_id(self):
         self.assertEqual(extract_video_id("https://www.tiktok.com/@a/video/555"), "555")
         self.assertEqual(extract_video_id("https://vt.tiktok.com/ZSx/"), "")
+
+
+class TestQueryClean(unittest.TestCase):
+    def test_strip_prefixes(self):
+        self.assertEqual(_clean_query("@user"), "user")
+        self.assertEqual(_clean_query("#hashtag"), "hashtag")
+        self.assertEqual(_clean_query("  plain  "), "plain")
+
+    def test_empty(self):
+        self.assertEqual(_clean_query(""), "")
+        self.assertEqual(_clean_query(None), "")
+
+
+class TestCache(unittest.TestCase):
+    def setUp(self):
+        from . import cache
+        cache.clear()
+
+    def test_set_get_roundtrip(self):
+        from . import cache
+        cache.set("testns", "key-rt", {"a": 1})
+        self.assertEqual(cache.get("testns", "key-rt"), {"a": 1})
+
+    def test_missing(self):
+        from . import cache
+        self.assertIsNone(cache.get("testns", "tidak-ada-key"))
+
+    def test_ttl_expiry(self):
+        from . import cache
+        cache.set("testns", "key-ttl", {"a": 1})
+        self.assertIsNone(cache.get("testns", "key-ttl", ttl=-1))
+
+    def test_get_or_set(self):
+        from . import cache
+        calls = {"n": 0}
+
+        def producer():
+            calls["n"] += 1
+            return {"v": calls["n"]}
+
+        v1, c1 = cache.get_or_set("testns", "key-gos", producer)
+        v2, c2 = cache.get_or_set("testns", "key-gos", producer)
+        self.assertFalse(c1)
+        self.assertTrue(c2)
+        self.assertEqual(v1, v2)
+        self.assertEqual(calls["n"], 1)
+
+
+class TestApi(unittest.TestCase):
+    def test_health(self):
+        from . import api
+        code, payload = api.health()
+        self.assertEqual(code, 200)
+        self.assertEqual(payload["status"], "ok")
+
+    def test_find_requires_url(self):
+        from . import api
+        code, payload = api.handle_find({})
+        self.assertEqual(code, 400)
+        self.assertIn("url", payload["error"])
+
+    def test_find_rejects_non_tiktok(self):
+        from . import api
+        code, _ = api.handle_find({"url": ["https://example.com/x"]})
+        self.assertEqual(code, 400)
+
+    def test_find_accepts_tiktok_shapes(self):
+        from . import api
+        self.assertTrue(api.TIKTOK_URL_RE.match("https://www.tiktok.com/@a/video/1"))
+        self.assertTrue(api.TIKTOK_URL_RE.match("https://vt.tiktok.com/ZSx/"))
+        self.assertTrue(api.TIKTOK_URL_RE.match("vt.tiktok.com/ZSx/"))
+        self.assertFalse(api.TIKTOK_URL_RE.match("https://youtube.com/x"))
+
+    def test_search_requires_q(self):
+        from . import api
+        code, _ = api.handle_search({})
+        self.assertEqual(code, 400)
+
+    def test_search_kind_normalized(self):
+        # Pastikan kind aneh tidak error sebelum menyentuh jaringan: kita monkeypatch.
+        from . import api, finder
+        captured = {}
+
+        class FakeScan:
+            def to_dict(self):
+                return {}
+
+        def fake_search(q, kind="hashtag", limit=6, comment_limit=50, per_video_cache=True):
+            captured["kind"] = kind
+            return FakeScan()
+
+        original = finder.search
+        finder.search = fake_search
+        try:
+            code, _ = api.handle_search({"q": ["x"], "kind": ["aneh"]})
+        finally:
+            finder.search = original
+        self.assertEqual(code, 200)
+        self.assertEqual(captured["kind"], "hashtag")
+
+
+class TestServerRateLimit(unittest.TestCase):
+    def test_limiter_blocks_after_max(self):
+        from .server import RateLimiter
+        rl = RateLimiter(max_requests=3, window_seconds=60)
+        self.assertTrue(rl.allow("ip1"))
+        self.assertTrue(rl.allow("ip1"))
+        self.assertTrue(rl.allow("ip1"))
+        self.assertFalse(rl.allow("ip1"))
+        self.assertTrue(rl.allow("ip2"))  # IP lain tidak terpengaruh
 
 
 if __name__ == "__main__":

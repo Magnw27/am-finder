@@ -32,6 +32,10 @@ utama; domain lain tetap ditampilkan sebagai prioritas rendah.
 - ⚠️ Deteksi tautan "tidak langsung" (mis. "link di bio").
 - 💎 **UI glassmorphism** biru-putih, dioptimalkan penuh untuk **mobile & desktop**
   (target sentuh ≥44px, safe-area iOS, tata letak adaptif).
+- 🔍 **Sisir kreator** — cari by **hashtag** (`#alightmotion`) atau **username**
+  (`@kreator`), lalu sisir preset dari banyak video sekaligus dalam tampilan grid.
+- ⚡ **Cache** hasil (6 jam, hemat kuota penyedia) + **rate-limit** per IP +
+  **validasi URL** + **provider fallback** (oEmbed resmi TikTok) untuk keandalan.
 - 🖥️ **Web app** + **CLI** — tanpa dependensi.
 - 🧩 Arsitektur **pluggable** — mudah menambah penyedia data TikTok lain.
 
@@ -83,7 +87,15 @@ entrypoint `index:app` dari `pyproject.toml`. Tidak perlu konfigurasi tambahan.
 ```bash
 python3 -m amfinder.cli "https://www.tiktok.com/@user/video/123..."
 python3 -m amfinder.cli "<url>" --limit 150       # pindai lebih banyak komentar
+python3 -m amfinder.cli "<url>" --no-cache        # paksa ambil data baru
 python3 -m amfinder.cli "<url>" --json            # keluarkan JSON
+
+# Sisir kreator / hashtag
+python3 -m amfinder.cli --scan alightmotion                 # hashtag
+python3 -m amfinder.cli --scan alightmotion --kind user     # username
+python3 -m amfinder.cli --scan alightmotion --count 12      # lebih banyak video
+
+python3 -m amfinder.cli --clear-cache             # bersihkan cache
 ```
 
 ### Test
@@ -92,23 +104,38 @@ python3 -m amfinder.cli "<url>" --json            # keluarkan JSON
 python3 -m amfinder.tests -v
 ```
 
+## API
+
+| Endpoint | Keterangan |
+|---|---|
+| `GET /api/find?url=<tiktok>` | Cari preset untuk satu video. Opsi: `limit` (10–300), `nocache=1`. |
+| `GET /api/search?q=<nama>&kind=hashtag\|user` | Sisir banyak video. Opsi: `limit` (1–20), `comment_limit` (10–150). |
+| `GET /health` | Status + ringkasan cache. |
+
+Semua endpoint berat dibatasi **20 permintaan/menit per IP** (balasan `429` bila lewat).
+
 ## Cara kerja
 
 ```
-URL TikTok
-    │
-    ▼
-[tiktok.py]  ambil video + komentar + bio   (lewat penyedia pluggable, mis. tikwm)
-    │
-    ▼
-[extractor.py]  temukan & skor kandidat link dari tiap teks
-    │
-    ▼
-[finder.py]  gabungkan, urutkan, bungkus jadi FindResult
-    │
-    ▼
-[server.py / cli.py]  tampilkan ke pengguna
+URL TikTok ─┐
+            ▼
+   [cache.py]  ada di cache? ──ya──► tampilkan (instan)
+            │tidak
+            ▼
+   [tiktok.py]  ambil video + komentar + bio   (provider pluggable + fallback oEmbed)
+            │
+            ▼
+   [extractor.py]  temukan & skor kandidat tautan dari tiap teks
+            │
+            ▼
+   [finder.py]  gabungkan, urutkan, bungkus jadi FindResult
+            │
+            ▼
+   [api.py] → [server.py / index.py]  sajikan ke UI / CLI
 ```
+
+Pencarian (`--scan` / `/api/search`) memakai jalur yang sama untuk tiap video
+yang ditemukan dari hashtag/username.
 
 ## Penyaringan & skor
 
@@ -136,8 +163,9 @@ lalu daftarkan di list `PROVIDERS`.
 
 - Link yang **hanya muncul di dalam video** (teks di layar) belum dibaca
   otomatis — perlu OCR (rencana pengembangan berikutnya).
-- Sangat bergantung pada ketersediaan penyedia pihak ketiga.
-- Cakupan komentar dibatasi `--limit` (default 100) karena keterbatasan laju API.
+- Sangat bergantung pada ketersediaan penyedia pihak ketiga. Endpoint pencarian
+  (`user/posts`, `feed/search`) lebih sering diblokir Cloudflare daripada endpoint
+  detail video; dari IP server (mis. Vercel) umumnya berhasil.
 
 ## Struktur
 
@@ -146,9 +174,11 @@ am-finder/
 ├── amfinder/
 │   ├── __init__.py
 │   ├── extractor.py    # temukan & skor link preset
-│   ├── tiktok.py       # penyedia data TikTok (pluggable)
-│   ├── finder.py       # orkestrasi
-│   ├── server.py       # web server lokal (stdlib)
+│   ├── tiktok.py       # penyedia data TikTok (pluggable + fallback oEmbed)
+│   ├── finder.py       # orkestrasi find + search
+│   ├── cache.py        # cache hasil di disk (TTL)
+│   ├── api.py          # dispatch HTTP bersama (dipakai server & Vercel)
+│   ├── server.py       # web server lokal (stdlib) + rate-limit
 │   ├── cli.py          # antarmuka terminal
 │   ├── tests.py        # unit test
 │   └── static/index.html

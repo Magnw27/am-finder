@@ -144,6 +144,38 @@
   .chip:hover{color:var(--blue-700); background:#fff;}
   .chip:active{transform:scale(.97);}
 
+  /* ---------- tabs ---------- */
+  .tabs{
+    display:inline-flex; gap:4px; padding:5px; margin:0 auto 18px; border-radius:999px;
+    background:rgba(255,255,255,.5); border:1px solid var(--glass-line);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    box-shadow:0 8px 24px -14px rgba(37,99,235,.5);
+  }
+  .tab{
+    border:0; cursor:pointer; font:inherit; font-size:13.5px; font-weight:600; color:var(--ink-soft);
+    padding:9px 20px; border-radius:999px; background:transparent; transition:.18s; min-height:40px;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .tab.active{background:var(--grad); color:#fff; box-shadow:0 8px 18px -8px rgba(37,99,235,.8);}
+  .tab:not(.active):hover{background:rgba(255,255,255,.7); color:var(--blue-700);}
+  .search-hidden{display:none;}
+
+  .scan-kind{
+    flex:none; border:1px solid var(--glass-line); background:rgba(255,255,255,.6); color:var(--ink-soft);
+    font:inherit; font-size:13px; font-weight:600; padding:10px 12px; border-radius:999px; cursor:pointer;
+    outline:none; -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%233c5a8c' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 11px center; padding-right:30px;
+  }
+  .btn-scan{
+    flex:none; border:0; cursor:pointer; color:#fff; font-weight:600; font-size:14.5px;
+    padding:13px 24px; border-radius:999px; background:var(--grad);
+    box-shadow:0 12px 26px -10px rgba(37,99,235,.75); transition:transform .15s, filter .15s;
+    display:inline-flex; align-items:center; gap:8px; min-height:46px;
+  }
+  .btn-scan:hover{transform:translateY(-1px); filter:brightness(1.05);}
+  .btn-scan:disabled{filter:grayscale(.3) opacity(.75); cursor:wait;}
+
   /* ---------- status ---------- */
   .status{max-width:760px; margin:22px auto 0; text-align:center; font-size:14px; color:var(--ink-soft); display:flex; align-items:center; justify-content:center; gap:10px;}
   .loader{width:18px;height:18px;flex:none;border-radius:50%;border:2.5px solid rgba(37,99,235,.25);border-top-color:var(--blue-600);animation:spin .7s linear infinite;}
@@ -248,6 +280,42 @@
   .error b{color:#b91c1c; font-size:15px;}
   .error p{margin:8px 0 0; font-size:13.5px; color:var(--ink-soft); word-break:break-word;}
 
+  /* ---------- scan (sisir) grid ---------- */
+  .scan-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px;}
+  @media (max-width:480px){ .scan-grid{grid-template-columns:1fr 1fr; gap:11px;} }
+  @media (max-width:340px){ .scan-grid{grid-template-columns:1fr;} }
+  .scancard{overflow:hidden; padding:0; position:relative; transition:transform .16s, box-shadow .16s; display:flex; flex-direction:column;}
+  @media (hover:hover){ .scancard:hover{transform:translateY(-3px); box-shadow:0 26px 56px -22px rgba(23,58,120,.55);} }
+  .scancard .thumb{position:relative; width:100%; aspect-ratio:9/16; background:linear-gradient(160deg,#0b2a5b,#1d4ed8); overflow:hidden;}
+  .scancard .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .scancard .thumb .noposter{position:absolute; inset:0; display:grid; place-items:center; color:rgba(255,255,255,.7); font-size:11px;}
+  .scancard .thumb .playmini{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:44px;height:44px; border-radius:50%;
+    background:rgba(255,255,255,.24); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px);
+    border:1px solid rgba(255,255,255,.7); color:#fff; display:grid; place-items:center; cursor:pointer; transition:.18s;
+  }
+  .scancard .thumb .playmini:hover{background:rgba(255,255,255,.4);}
+  .scancard .badgefound{
+    position:absolute; top:9px; left:9px; z-index:2; font-size:11px; font-weight:700; color:#fff;
+    background:linear-gradient(135deg,#16a34a,#22c55e); padding:3px 9px; border-radius:999px;
+    box-shadow:0 6px 14px -6px rgba(22,163,74,.9);
+  }
+  .scancard .body{padding:12px; display:flex; flex-direction:column; gap:8px; flex:1;}
+  .scancard .t{font-size:12.5px; font-weight:600; color:var(--blue-900); line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .scancard .a{font-size:11.5px; color:var(--ink-mute);}
+  .scancard .lk{display:flex; flex-direction:column; gap:6px; margin-top:auto;}
+  .scancard .lk a{
+    font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--blue-800); text-decoration:none;
+    background:rgba(37,99,235,.08); border:1px solid rgba(37,99,235,.16); border-radius:9px; padding:7px 9px;
+    display:flex; align-items:center; gap:6px; word-break:break-all; transition:.15s;
+  }
+  .scancard .lk a:hover{background:rgba(37,99,235,.16);}
+  .scancard .lk a .tagx{flex:none; font-family:"Inter",sans-serif; font-weight:700; font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:#fff; background:var(--grad); padding:2px 6px; border-radius:5px;}
+  .scancard .lk a.alight .tagx{background:linear-gradient(135deg,#0284c7,#38bdf8);}
+  .scancard .nolink{font-size:11.5px; color:var(--ink-mute); text-align:center; padding:6px 0;}
+  .scanmeta{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; font-size:13px; color:var(--ink-soft);}
+  .scanmeta .k{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--blue-700); background:rgba(37,99,235,.1); border:1px solid rgba(37,99,235,.18); padding:4px 11px; border-radius:999px;}
+
   details.srcbox{margin-top:16px; padding:15px 17px;}
   details.srcbox summary{cursor:pointer; list-style:none; font-size:13.5px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:9px;}
   details.srcbox summary::-webkit-details-marker{display:none;}
@@ -334,7 +402,7 @@
       <a href="#cara">Cara kerja</a>
       <a href="#prioritas">Prioritas</a>
     </nav>
-    <span class="ver">v0.3.1</span>
+    <span class="ver">v0.4.0</span>
   </div>
 
   <header class="hero" id="cari">
@@ -347,7 +415,18 @@
     </p>
 
     <form class="search" id="form">
-      <div class="field glass">
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" id="tab-find" role="tab" aria-selected="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          Cari video
+        </button>
+        <button type="button" class="tab" id="tab-scan" role="tab" aria-selected="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+          Sisir kreator
+        </button>
+      </div>
+
+      <div class="field glass" id="field-find">
         <span class="ico" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         </span>
@@ -358,8 +437,24 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
       </div>
+
+      <div class="field glass search-hidden" id="field-scan">
+        <span class="ico" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg>
+        </span>
+        <input id="scan-q" type="text" autocomplete="off" spellcheck="false" enterkeyhint="search"
+               placeholder="Nama hashtag atau @username — mis. alightmotion" />
+        <select id="scan-kind" class="scan-kind" aria-label="Jenis pencarian">
+          <option value="hashtag">Hashtag</option>
+          <option value="user">Username</option>
+        </select>
+        <button id="btn-scan" type="button" class="btn-scan">
+          Sisir
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
     </form>
-    <div class="examples">
+    <div class="examples" id="examples">
       <span>Contoh:</span>
       <button type="button" class="chip" data-ex="https://www.tiktok.com/@user/video/7300000000000000000">URL video penuh</button>
       <button type="button" class="chip" data-ex="https://vt.tiktok.com/ZSxxxxxx/">tautan pendek</button>
@@ -441,6 +536,17 @@
   var statusEl = document.getElementById("status");
   var resultEl = document.getElementById("result");
 
+  // tab & sisir
+  var tabFind = document.getElementById("tab-find");
+  var tabScan = document.getElementById("tab-scan");
+  var fieldFind = document.getElementById("field-find");
+  var fieldScan = document.getElementById("field-scan");
+  var scanQ = document.getElementById("scan-q");
+  var scanKind = document.getElementById("scan-kind");
+  var btnScan = document.getElementById("btn-scan");
+  var examplesEl = document.getElementById("examples");
+  var mode = "find";
+
   var SRC_LABEL = { description: "Deskripsi", bio: "Bio kreator", pinned_comment: "Komentar disematkan", comment: "Komentar" };
   var COPY_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
   var PLAY_ICON = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10.5-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z"/></svg>';
@@ -486,7 +592,7 @@
     // --- preview ---
     html += '<aside class="preview glass">';
     html += '<div class="bar"><span class="live"><span class="pulse"></span>Pratinjau</span>' +
-      "<span>" + (data.elapsed_ms || 0) + " ms</span></div>";
+      "<span>" + (data.from_cache ? "⚡ cache · " : "") + (data.elapsed_ms || 0) + " ms</span></div>";
     html += '<div class="frame" id="vframe" data-embed="' + esc(v.embed_url || "") + '" data-url="' + esc(v.url || "") + '">';
     if (v.cover) html += '<img class="poster" src="' + esc(v.cover) + '" alt="Pratinjau video" referrerpolicy="no-referrer" />';
     html += '<span class="shade"></span>';
@@ -632,9 +738,155 @@
       .then(function () { btn.disabled = false; });
   });
 
-  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) {
-    c.addEventListener("click", function () { input.value = c.getAttribute("data-ex"); input.focus(); });
-  });
+  // ---- tab: Cari video / Sisir kreator ----
+  function setMode(next) {
+    mode = next;
+    var isFind = next === "find";
+    tabFind.classList.toggle("active", isFind);
+    tabScan.classList.toggle("active", !isFind);
+    tabFind.setAttribute("aria-selected", String(isFind));
+    tabScan.setAttribute("aria-selected", String(!isFind));
+    fieldFind.classList.toggle("search-hidden", !isFind);
+    fieldScan.classList.toggle("search-hidden", isFind);
+    examplesEl.innerHTML = isFind
+      ? '<span>Contoh:</span>' +
+        '<button type="button" class="chip" data-ex="https://www.tiktok.com/@user/video/7300000000000000000">URL video penuh</button>' +
+        '<button type="button" class="chip" data-ex="https://vt.tiktok.com/ZSxxxxxx/">tautan pendek</button>'
+      : '<span>Contoh:</span>' +
+        '<button type="button" class="chip" data-scan="alightmotion">#alightmotion</button>' +
+        '<button type="button" class="chip" data-scan="am preset">am preset</button>' +
+        '<button type="button" class="chip" data-scan="@alightmotion">@alightmotion</button>';
+    wireChips();
+    resultEl.innerHTML = "";
+    statusEl.innerHTML = "";
+    (isFind ? input : scanQ).focus();
+  }
+  tabFind.addEventListener("click", function () { setMode("find"); });
+  tabScan.addEventListener("click", function () { setMode("scan"); });
+
+  // ---- sisir kreator (hashtag/username) ----
+  btnScan.addEventListener("click", runScan);
+  scanQ.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); runScan(); } });
+
+  var KIND_OK = { hashtag: 1, user: 1 };
+  function runScan() {
+    var q = (scanQ.value || "").trim();
+    if (!q) { scanQ.focus(); return; }
+    var kind = KIND_OK[scanKind.value] ? scanKind.value : "hashtag";
+    btnScan.disabled = true;
+    resultEl.innerHTML = "";
+    statusEl.innerHTML = '<span class="loader"></span> Mencari video lalu menyisir preset-nya… (bisa agak lama)';
+
+    fetch("/api/search?q=" + encodeURIComponent(q) + "&kind=" + kind + "&limit=6&comment_limit=40")
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+      .then(function (r) {
+        statusEl.innerHTML = "";
+        if (!r.ok) {
+          resultEl.innerHTML = '<div class="error glass"><b>Gagal menyisir</b><p>' +
+            esc(r.data.error || "Kesalahan tidak diketahui") + (r.data.detail ? "<br/>" + esc(r.data.detail) : "") + "</p></div>";
+          return;
+        }
+        renderScan(r.data);
+      })
+      .catch(function (err) {
+        statusEl.innerHTML = "";
+        resultEl.innerHTML = '<div class="error glass"><b>Kesalahan jaringan</b><p>' + esc(String(err)) + "</p></div>";
+      })
+      .then(function () { btnScan.disabled = false; });
+  }
+
+  function scanCard(it) {
+    var h = '<div class="scancard glass">';
+    h += '<div class="thumb" data-embed="' + esc(it.embed_url || "") + '">';
+    if (it.cover) h += '<img src="' + esc(it.cover) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.noposter\').style.display=\'grid\'" />';
+    h += '<span class="noposter" style="display:' + (it.cover ? "none" : "grid") + '">tidak ada pratinjau</span>';
+    if (it.embed_url) h += '<button class="playmini" type="button" aria-label="Putar pratinjau">' + PLAY_ICON + "</button>";
+    h += "</div>";
+    h += '<div class="body">';
+    if (it.links && it.links.length) h += '<span class="badgefound" style="position:static;align-self:flex-start">' + it.links.length + " preset</span>";
+    h += '<div class="t">' + esc(it.title || "(tanpa deskripsi)") + "</div>";
+    h += '<div class="a">@' + esc(it.author || "?") + (it.play_count ? " · " + fmtNum(it.play_count) + " tonton" : "") + "</div>";
+    if (it.links && it.links.length) {
+      h += '<div class="lk">';
+      it.links.slice(0, 3).forEach(function (l) {
+        h += '<a class="' + (l.tier === "alight" ? "alight" : "") + '" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' +
+          '<span class="tagx">' + esc(l.name) + "</span><span>" + esc(shortUrl(l.url)) + "</span></a>";
+      });
+      h += "</div>";
+    } else {
+      h += '<div class="nolink">Tidak ada preset XML/Alight Motion</div>';
+    }
+    h += "</div></div>";
+    return h;
+  }
+
+  function renderScan(data) {
+    var items = data.items || [];
+    var html = "";
+    html += '<div class="section-head"><h3>Hasil sisir: ' + esc(data.kind === "user" ? "@" + data.query : "#" + data.query) + "</h3>" +
+      '<span class="count">' + (data.found || 0) + " video berpreset</span></div>";
+    html += '<div class="scanmeta"><span class="k">' + items.length + " video dipindai</span>" +
+      '<span class="k">' + (data.elapsed_ms || 0) + " ms</span>" +
+      '<span class="k">' + esc(data.kind === "user" ? "username" : "hashtag") + "</span></div>";
+
+    if (items.length) {
+      html += '<div class="scan-grid">' + items.map(scanCard).join("") + "</div>";
+    } else {
+      html += '<div class="empty glass"><div class="big">Tidak ada video ditemukan</div>' +
+        "Penyedia mungkin membatasi pencarian, atau nama mungkin salah. Coba lagi nanti.</div>";
+    }
+    (data.warnings || []).forEach(function (w) {
+      html += '<div class="notice glass"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>' + esc(w) + "</span></div>";
+    });
+
+    resultEl.innerHTML = html;
+    wireScanPreviews();
+  }
+
+  function wireScanPreviews() {
+    Array.prototype.forEach.call(resultEl.querySelectorAll(".scancard .thumb"), function (thumb) {
+      var play = thumb.querySelector(".playmini");
+      if (!play) return;
+      play.addEventListener("click", function () {
+        var embed = thumb.getAttribute("data-embed");
+        if (!embed) return;
+        var ifr = document.createElement("iframe");
+        ifr.setAttribute("src", embed + (embed.indexOf("?") >= 0 ? "&" : "?") + "autoplay=1");
+        ifr.setAttribute("allow", "autoplay; encrypted-media; fullscreen; picture-in-picture");
+        ifr.setAttribute("allowfullscreen", "");
+        ifr.setAttribute("referrerpolicy", "unsafe-url");
+        ifr.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0;";
+        thumb.innerHTML = "";
+        thumb.appendChild(ifr);
+      });
+    });
+  }
+
+  function fmtNum(n) {
+    n = Number(n) || 0;
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, "") + "M";
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, "") + "K";
+    return String(n);
+  }
+  function shortUrl(u) {
+    return String(u || "").replace(/^https?:\/\//, "").slice(0, 46);
+  }
+
+  function wireChips() {
+    Array.prototype.forEach.call(examplesEl.querySelectorAll(".chip"), function (c) {
+      c.addEventListener("click", function () {
+        if (c.hasAttribute("data-ex")) { input.value = c.getAttribute("data-ex"); input.focus(); return; }
+        if (c.hasAttribute("data-scan")) {
+          var v = c.getAttribute("data-scan");
+          if (v.charAt(0) === "@") { scanKind.value = "user"; v = v.slice(1); }
+          else { scanKind.value = "hashtag"; v = v.replace(/^#/, ""); }
+          scanQ.value = v; scanQ.focus();
+        }
+      });
+    });
+  }
+
+  wireChips();
 })();
 </script>
 </body>

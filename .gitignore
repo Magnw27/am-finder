@@ -9,3 +9,6 @@ __pycache__/
 
 # Vercel
 .vercel/
+
+# cache lokal (bila diarahkan ke dalam repo)
+.amfinder-cache/

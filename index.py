@@ -1,25 +1,24 @@
 """Entrypoint WSGI untuk Vercel.
 
 Vercel Python runtime memuat variabel ``app`` dari berkas entrypoint
-(``index.py`` di root proyek). Berkas ini menjadi adaptor tipis di atas
-logika inti :mod:`amfinder.finder` — kode inti yang dipakai secara lokal
-tidak berubah sama sekali.
+(``index.py`` di root proyek). Berkas ini menjadi adaptor tipis di atas logika
+berbagi :mod:`amfinder.api` — kode inti yang dipakai secara lokal tidak berubah.
 
 Rute:
     GET /                 -> UI
     GET /health           -> cek status
-    GET /api/find?url=... -> jalankan pencarian (JSON)
+    GET /api/find?url=... -> cari preset untuk satu video (JSON)
+    GET /api/search?q=... -> cari & sisir by hashtag/username (JSON)
 """
 
 from __future__ import annotations
 
 import json
-import time
 import urllib.parse
 from pathlib import Path
 from typing import Callable, Iterable
 
-from amfinder import __version__, finder, tiktok
+from amfinder import api
 
 # Cari index.html relatif terhadap proyek (cwd di Vercel = root proyek).
 _HERE = Path(__file__).resolve().parent
@@ -69,39 +68,31 @@ def app(environ: Environ, start_response: StartResponse) -> Iterable[bytes]:
         return _respond(start_response, "200 OK", _load_html(), "text/html; charset=utf-8")
 
     if path == "/health":
-        return _json(start_response, "200 OK", {"status": "ok", "version": __version__})
+        code, payload = api.health()
+        return _json(start_response, _status(code), payload)
 
     if path == "/api/find":
-        url = (query.get("url") or [""])[0].strip()
-        if not url:
-            return _json(start_response, "400 Bad Request", {"error": "Parameter 'url' wajib diisi."})
-        try:
-            limit = int((query.get("limit") or ["60"])[0])
-            limit = max(10, min(limit, 200))
-        except ValueError:
-            limit = 60
+        code, payload = api.handle_find(query)
+        return _json(start_response, _status(code), payload)
 
-        started = time.time()
-        try:
-            result = finder.find(url, comment_limit=limit)
-        except tiktok.ProviderError as exc:
-            return _json(
-                start_response,
-                "502 Bad Gateway",
-                {"error": "Gagal mengambil data dari TikTok.", "detail": str(exc)},
-            )
-        except Exception as exc:  # noqa: BLE001
-            return _json(
-                start_response,
-                "500 Internal Server Error",
-                {"error": "Kesalahan internal.", "detail": str(exc)},
-            )
-
-        payload = result.to_dict()
-        payload["elapsed_ms"] = round((time.time() - started) * 1000)
-        return _json(start_response, "200 OK", payload)
+    if path == "/api/search":
+        code, payload = api.handle_search(query)
+        return _json(start_response, _status(code), payload)
 
     return _json(start_response, "404 Not Found", {"error": "Tidak ditemukan"})
+
+
+_STATUS_TEXT = {
+    200: "200 OK",
+    400: "400 Bad Request",
+    429: "429 Too Many Requests",
+    500: "500 Internal Server Error",
+    502: "502 Bad Gateway",
+}
+
+
+def _status(code: int) -> str:
+    return _STATUS_TEXT.get(code, f"{code} OK")
 
 
 #: Alias umum untuk beberapa runtime.

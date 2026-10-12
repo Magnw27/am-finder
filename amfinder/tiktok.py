@@ -239,8 +239,55 @@ class TikWMProvider:
         )
 
 
-#: Urutan penyedia yang akan dicoba.
+class OEmbedProvider:
+    """Penyedia cadangan berbasis oEmbed resmi TikTok.
+
+    Hanya menyediakan metadata ringkas (judul, penulis, sampul) dan **tidak**
+    mengembalikan komentar. Berguna sebagai jaring pengaman bila penyedia utama
+    gagal, dan untuk mengisi bio/penulis yang hilang.
+    """
+
+    name = "oembed"
+    endpoint = "https://www.tiktok.com/oembed"
+
+    def _get(self, url: str, timeout: int = 20) -> dict[str, Any]:
+        full = self.endpoint + "?url=" + urllib.parse.quote(url, safe="")
+        req = urllib.request.Request(full, headers={"User-Agent": _UA, "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                body = resp.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as exc:
+            raise ProviderError(f"HTTP {exc.code} dari {self.name}") from exc
+        except urllib.error.URLError as exc:
+            raise ProviderError(f"Gagal konek ke {self.name}: {exc.reason}") from exc
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise ProviderError(f"Respons {self.name} bukan JSON") from exc
+
+    def fetch_video(self, url: str) -> VideoInfo:
+        d = self._get(url)
+        if not d or not d.get("author_url"):
+            raise ProviderError("oembed tidak mengembalikan data video")
+        author = (d.get("author_url") or "").rstrip("/").split("/@")[-1]
+        return VideoInfo(
+            url=url,
+            video_id=extract_video_id(url),
+            title=d.get("title") or "",
+            author=author,
+            cover=d.get("thumbnail_url") or "",
+            raw=d,
+        )
+
+    def fetch_comments(self, url: str, limit: int = 100) -> list[Comment]:
+        raise ProviderError("oembed tidak menyediakan komentar")
+
+
+#: Penyedia yang lebih kaya fitur, dicoba lebih dulu.
 PROVIDERS: list[type] = [TikWMProvider]
+
+#: Penyedia cadangan untuk metadata (hanya video, tanpa komentar).
+METADATA_FALLBACKS: list[type] = [OEmbedProvider]
 
 
 # ---------------------------------------------------------------------------
@@ -248,9 +295,12 @@ PROVIDERS: list[type] = [TikWMProvider]
 # ---------------------------------------------------------------------------
 
 def get_video(url: str) -> tuple[VideoInfo, str]:
-    """Ambil info video memakai penyedia pertama yang berhasil."""
+    """Ambil info video memakai penyedia pertama yang berhasil.
+
+    Bila penyedia utama gagal, coba penyedia fallback (metadata saja).
+    """
     errors = []
-    for provider_cls in PROVIDERS:
+    for provider_cls in PROVIDERS + METADATA_FALLBACKS:
         provider = provider_cls()
         try:
             return provider.fetch_video(url), provider.name
@@ -269,3 +319,112 @@ def get_comments(url: str, limit: int = 100) -> list[Comment]:
         except ProviderError as exc:
             errors.append(f"{provider.name}: {exc}")
     raise ProviderError("Gagal mengambil komentar. " + " | ".join(errors))
+
+
+# ---------------------------------------------------------------------------
+# Pencarian (hashtag / username)
+# ---------------------------------------------------------------------------
+
+#: Entri hasil pencarian yang sudah dinormalisasi.
+@dataclass
+class SearchItem:
+    video_id: str
+    url: str = ""
+    title: str = ""
+    author: str = ""
+    cover: str = ""
+    duration: int = 0
+    play_count: int = 0
+    digg_count: int = 0
+    create_time: int = 0
+    raw: dict[str, Any] = field(default_factory=dict)
+
+
+def _item_from_tikwm(v: dict[str, Any]) -> SearchItem:
+    author = v.get("author") or {}
+    vid = str(v.get("video_id") or v.get("id") or "")
+    user = author.get("unique_id") or author.get("nickname") or v.get("unique_id") or ""
+    url = f"https://www.tiktok.com/@{user}/video/{vid}" if (user and vid) else (v.get("url") or "")
+    return SearchItem(
+        video_id=vid,
+        url=url,
+        title=v.get("title") or "",
+        author=user,
+        cover=v.get("cover") or v.get("origin_cover") or "",
+        duration=int(v.get("duration") or 0),
+        play_count=int(v.get("play_count") or 0),
+        digg_count=int(v.get("digg_count") or 0),
+        create_time=int(v.get("create_time") or 0),
+        raw=v,
+    )
+
+
+def _clean_query(value: str) -> str:
+    value = (value or "").strip()
+    if value.startswith("@"):
+        value = value[1:]
+    if value.startswith("#"):
+        value = value[1:]
+    return value
+
+
+def _tikwm_base() -> str:
+    provider_cls = PROVIDERS[0]
+    return provider_cls.base  # type: ignore[attr-defined]
+
+
+def search_hashtag(hashtag: str, count: int = 12) -> list[SearchItem]:
+    """Cari video berdasarkan nama hashtag.
+
+    Alur: resolve nama -> id lewat ``challenge/info``, lalu ambil
+    ``challenge/posts``.
+    """
+    name = _clean_query(hashtag)
+    if not name:
+        return []
+    base = _tikwm_base()
+    provider = PROVIDERS[0]()
+
+    info = provider._get(base + "challenge/info?challenge_name=" + urllib.parse.quote(name, safe=""))
+    cid = str((info.get("data") or {}).get("id") or "")
+    if not cid:
+        return []
+
+    data = provider._get(
+        base + "challenge/posts?" + urllib.parse.urlencode({"challenge_id": cid, "count": max(1, min(count, 30))})
+    )
+    videos = (data.get("data") or {}).get("videos") or []
+    return [_item_from_tikwm(v) for v in videos][:count]
+
+
+def search_user(username: str, count: int = 12) -> list[SearchItem]:
+    """Cari video terbaru milik seorang pengguna."""
+    name = _clean_query(username)
+    if not name:
+        return []
+    base = _tikwm_base()
+    provider = PROVIDERS[0]()
+    data = provider._get(
+        base + "user/posts?" + urllib.parse.urlencode({"unique_id": name, "count": max(1, min(count, 30))})
+    )
+    d = data.get("data") or {}
+    videos = d.get("videos") or (d if isinstance(d, list) else [])
+    if isinstance(videos, dict):
+        videos = videos.get("videos") or []
+    return [_item_from_tikwm(v) for v in videos][:count]
+
+
+def user_bio(username: str) -> str:
+    """Ambil bio (signature) seorang pengguna bila tersedia."""
+    name = _clean_query(username)
+    if not name:
+        return ""
+    base = _tikwm_base()
+    provider = PROVIDERS[0]()
+    try:
+        data = provider._get(base + "user/info?unique_id=" + urllib.parse.quote(name, safe=""))
+    except ProviderError:
+        return ""
+    d = data.get("data") or {}
+    user = d.get("user") or d
+    return user.get("signature") or ""
