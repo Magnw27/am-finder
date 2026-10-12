@@ -367,9 +367,13 @@
 
   /* ---------- MOBILE ---------- */
   @media (max-width:720px){
-    .topbar nav{display:none;}
+    /* nav TIDAK disembunyikan lagi — topbar dibuat dua baris:
+       baris 1 = brand + versi, baris 2 = tombol Home/Support/Premium */
+    .topbar{flex-wrap:wrap; row-gap:8px;}
+    .brand{flex:1 1 auto;}
+    .topbar nav.mainnav{order:3; width:100%; justify-content:center; gap:6px;}
+    .navbtn{flex:1 1 0; text-align:center; font-size:13px; padding:9px 10px;}
     .brand .txt{font-size:18px;}
-    .orbs .orb.c{display:none;}
     body{background-attachment:scroll;}
   }
   @media (max-width:560px){
